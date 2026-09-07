@@ -820,7 +820,7 @@
             </div>
 
             <div class="p-3 sm:p-4 space-y-3">
-                <div class="relative w-full h-64 sm:h-72 bg-slate-950 rounded-xl overflow-hidden flex flex-col items-center justify-center border border-slate-800 select-none">
+                <div class="relative w-full h-56 sm:h-64 bg-slate-950 rounded-xl overflow-hidden flex flex-col items-center justify-center border border-slate-800 select-none">
                     <div id="cameraReader" class="w-full h-full"></div>
                     
                     <div id="cameraScanOverlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-between p-3.5 z-10">
@@ -830,18 +830,29 @@
                             <span class="font-medium">Kamera Standby - Arahkan ke Barcode</span>
                         </div>
 
-                        <div class="relative w-[88%] max-w-[320px] h-[115px] sm:h-[135px] my-auto rounded-lg border-2 border-emerald-400/90 shadow-[0_0_20px_rgba(52,211,153,0.35)] bg-emerald-500/5 overflow-hidden">
+                        <div class="relative w-[88%] max-w-[320px] h-[95px] sm:h-[110px] my-auto rounded-lg border-2 border-emerald-400/90 shadow-[0_0_20px_rgba(52,211,153,0.35)] bg-emerald-500/5 overflow-hidden">
                             <div class="absolute left-1 right-1 h-0.5 bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_12px_#f43f5e] animate-laser"></div>
                         </div>
 
                         <div class="text-[10px] text-slate-300 bg-slate-950/80 px-3 py-1 rounded-md border border-slate-800/80">
-                            Barcode yang terbaca akan otomatis masuk ke sistem
+                            Arahkan barcode ke dalam kotak merah
                         </div>
                     </div>
 
                     <div id="cameraStatusOverlay" class="absolute inset-0 bg-slate-900/90 text-white flex flex-col items-center justify-center p-4 text-center space-y-2 z-20">
                         <i class="fa-solid fa-circle-notch fa-spin text-3xl text-astra-400"></i>
                         <p id="cameraStatusMsg" class="text-xs font-semibold text-slate-200">Menyiapkan Kamera...</p>
+                    </div>
+                </div>
+
+                <!-- KOTAK PREVIEW HASIL SCAN DI BAWAH KAMERA -->
+                <div id="cameraAssetPreviewBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-slate-400 font-bold uppercase tracking-wider">Hasil Deteksi Barcode:</span>
+                        <span id="previewScanCode" class="font-mono font-bold text-slate-900 bg-slate-200 px-2 py-0.5 rounded">-</span>
+                    </div>
+                    <div id="previewAssetContent" class="text-xs text-slate-600 italic">
+                        Belum ada barcode yang terpindai. Arahkan kamera ke stiker...
                     </div>
                 </div>
             </div>
@@ -851,7 +862,7 @@
                 <button onclick="closeCameraModal()" class="w-1/2 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
                     Tutup Kamera
                 </button>
-                <button onclick="processScanFromCameraModal()" class="w-1/2 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5">
+                <button id="btnProcessCameraPreview" onclick="processScanFromCameraModal()" disabled class="w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Proses & Verifikasi</span>
                 </button>
@@ -971,14 +982,6 @@
                     osc.stop(ctx.currentTime + 0.3);
                 }
             } catch (e) {}
-        }
-
-        function processScanFromCameraModal() {
-            // 1. Matikan kamera terlebih dahulu
-            closeCameraModal();
-
-            // 2. Jalankan fungsi pencarian dan verifikasi data
-            triggerOpnameLookupForVerification('Scan');
         }
 
         function toggleAutoSaveMode(enabled) {
@@ -1772,11 +1775,26 @@
             document.getElementById('newAssetRoom').value = '';
         }
 
-        // --- CAMERA SCANNER INTEGRATION ---
+        // Variabel penampung sementara hasil scan kamera aktif
+        let scannedPreviewAsset = null;
+        let scannedRawBarcode = "";
+
+        // --- CAMERA SCANNER & PREVIEW INTEGRATION ---
         function openCameraModal() {
+            scannedPreviewAsset = null;
+            scannedRawBarcode = "";
+            safeSetText('previewScanCode', '-');
+            const contentBox = document.getElementById('previewAssetContent');
+            if (contentBox) contentBox.innerHTML = 'Belum ada barcode yang terpindai. Arahkan kamera ke stiker...';
+            
+            const actionBtn = document.getElementById('btnProcessCameraPreview');
+            if (actionBtn) {
+                actionBtn.disabled = true;
+                actionBtn.className = "w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed";
+            }
+
             const modal = document.getElementById('cameraModal');
-            if (!modal) return;
-            modal.classList.remove('hidden');
+            if (modal) modal.classList.remove('hidden');
             initCameraStream();
         }
 
@@ -1799,24 +1817,69 @@
         
             try {
                 html5QrCodeScanner = new Html5Qrcode("cameraReader");
-                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+                const config = { fps: 10, qrbox: { width: 250, height: 140 } };
         
                 const qrCodeSuccessCallback = (decodedText) => {
                     let rawText = decodedText.trim();
-        
-                    if (rawText.length < 8) {
-                        return; // Abaikan jika barcode terbaca terpotong
-                    }
-        
+                    if (rawText.length < 8) return; // Abaikan jika barcode terbaca terpotong
+
                     playBeepSound('success');
-                    
-                    // Masukkan teks hasil scan ke input utama tanpa menutup kamera
+                    scannedRawBarcode = rawText;
+
                     const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) {
-                        inputEl.value = rawText;
+                    if (inputEl) inputEl.value = rawText;
+
+                    let cleanedText = rawText.replace(/[-_]/g, " ");
+                    let parts = cleanedText.split(/\s+/);
+                    let scannedId = parts[0].trim().toLowerCase();
+                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
+
+                    let foundAsset = assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                        return dbId === scannedId && dbSub === scannedSub;
+                    }) || assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        return dbId === scannedId;
+                    });
+
+                    scannedPreviewAsset = foundAsset || {
+                        id: scannedId,
+                        subNumber: scannedSub,
+                        cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
+                        deskripsi: `TEMUAN_ASET_${scannedId}`,
+                        capitalizedOn: "-",
+                        lokasi: "TEMUAN_OPNAME"
+                    };
+
+                    safeSetText('previewScanCode', rawText);
+                    const contentBox = document.getElementById('previewAssetContent');
+                    const actionBtn = document.getElementById('btnProcessCameraPreview');
+
+                    if (contentBox) {
+                        if (foundAsset) {
+                            contentBox.innerHTML = `
+                                <div class="text-emerald-700 font-bold flex items-center gap-1 mb-0.5">
+                                    <i class="fa-solid fa-circle-check"></i> Aset Ditemukan di Database!
+                                </div>
+                                <p class="font-bold text-slate-900">${foundAsset.deskripsi}</p>
+                                <p class="text-[11px] text-slate-500 font-mono">Cabang: ${foundAsset.cabang} | Ruangan: ${foundAsset.lokasi}</p>
+                            `;
+                        } else {
+                            contentBox.innerHTML = `
+                                <div class="text-amber-700 font-bold flex items-center gap-1 mb-0.5">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Aset Tidak Terdaftar (Temuan Baru)
+                                </div>
+                                <p class="font-bold text-slate-900">ID: ${scannedId} (Sub: ${scannedSub})</p>
+                                <p class="text-[11px] text-slate-500">Akan dicatat sebagai aset temuan baru.</p>
+                            `;
+                        }
                     }
-        
-                    showToast('Barcode Terbaca', `Kode: ${rawText}. Klik tombol Proses untuk verifikasi.`, 'success');
+
+                    if (actionBtn) {
+                        actionBtn.disabled = false;
+                        actionBtn.className = "w-1/2 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer";
+                    }
                 };
         
                 await html5QrCodeScanner.start(
@@ -1851,6 +1914,35 @@
         
             const modal = document.getElementById('cameraModal');
             if (modal) modal.classList.add('hidden');
+        }
+
+        function processScanFromCameraModal() {
+            if (!scannedPreviewAsset) {
+                showToast('Belum Ada Barcode', 'Arahkan kamera ke barcode terlebih dahulu.', 'warning');
+                return;
+            }
+
+            closeCameraModal();
+
+            // Cek duplikat harian sebelum buka modal verifikasi
+            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+            const alreadyScannedToday = historyLogs.some(h => {
+                let hId = String(h.assetId || "").trim().toLowerCase();
+                let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                let hDate = String(h.tanggalScan || "").trim();
+                
+                return hId === String(scannedPreviewAsset.id).trim().toLowerCase() && 
+                       hSub === String(scannedPreviewAsset.subNumber || "0").trim().toLowerCase() && 
+                       hDate === todayStr;
+            });
+
+            if (alreadyScannedToday) {
+                playBeepSound('error');
+                showToast('Aset Sudah Terscan', `Aset ${scannedPreviewAsset.id} sudah pernah dipindai hari ini.`, 'warning');
+                return;
+            }
+
+            openOpnameModal(scannedPreviewAsset, 'Scan');
         }
 
         function handleFileScan(event) {
