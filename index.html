@@ -889,6 +889,45 @@
     </div>
 
     <script>
+        // Cukup panggil URL internal Vercel ini! Sangat bersih dan aman.
+        const PROXY_API_URL = "/api/proxy";
+        
+        function fetchDataFromBackend() {
+            showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
+        
+            fetch(`${PROXY_API_URL}?action=getAssets`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        assets = res.data;
+                        saveState();
+                        renderKPIs();
+                        renderTable();
+                        showToast('Sukses', 'Data master berhasil dimuat.', 'success');
+                    }
+                })
+                .catch(err => console.error("Error:", err));
+        }
+
+        // Contoh saat mengirim log hasil opname ke server via proxy
+        function sendLogToServer(logData) {
+            fetch(PROXY_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "addLog",
+                    data: logData
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    console.log("Log tersimpan aman via proxy.");
+                }
+            })
+            .catch(err => console.error("Gagal sync log:", err));
+        }
+        
         // Web Audio API Audio Beep Generator for Barcode Scanner
         function playBeepSound(type = 'success') {
             try {
@@ -1989,15 +2028,12 @@
         }
 
         window.onload = function () {
+            // Panggil fungsi tarik data database saat halaman pertama kali dimuat
+            fetchDataFromBackend(); 
+
             renderKPIs();
             renderTable();
             renderHistoryTable();
-
-            // Load saved settings
-            const sheetsInput = document.getElementById('settingSheetsUrl');
-            if (sheetsInput && googleSheetsWebhookUrl) {
-                sheetsInput.value = googleSheetsWebhookUrl;
-            }
 
             const inputEl = document.getElementById('mainBarcodeInput');
             if (inputEl) {
