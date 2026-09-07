@@ -988,6 +988,62 @@
             }
         }
 
+        function triggerOpnameLookupForVerification(method = 'Scan') {
+            const inputEl = document.getElementById('mainBarcodeInput');
+            if (!inputEl) return;
+
+            const barcodeText = inputEl.value.trim();
+            if (!barcodeText) {
+                playBeepSound('error');
+                showToast('Input Kosong', 'Harap masukkan ID Asset barcode terlebih dahulu.', 'warning');
+                return;
+            }
+
+            // Pecah string ID dan Sub-Number dengan aman
+            let cleanedText = barcodeText.replace(/[-_]/g, " ");
+            let parts = cleanedText.split(/\s+/);
+            let scannedId = parts[0].trim().toLowerCase();
+            let scannedSub = (parts[1] || "0").trim().toLowerCase();
+
+            // Cocokkan dengan database Master Aset (Table 1)
+            let foundAsset = assets.find(a => {
+                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                return dbId === scannedId && dbSub === scannedSub;
+            }) || assets.find(a => {
+                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                return dbId === scannedId;
+            });
+
+            // Cek apakah sudah discan hari ini
+            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+            const alreadyScannedToday = historyLogs.some(h => {
+                let hId = String(h.assetId || "").trim().toLowerCase();
+                let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                let hDate = String(h.tanggalScan || "").trim();
+                
+                let targetId = foundAsset ? String(foundAsset.id).trim().toLowerCase() : scannedId;
+                let targetSub = foundAsset ? String(foundAsset.subNumber || "0").trim().toLowerCase() : scannedSub;
+
+                return hId === targetId && hSub === targetSub && hDate === todayStr;
+            });
+
+            if (alreadyScannedToday) {
+                playBeepSound('error');
+                showToast('Aset Sudah Terscan', `Aset ${foundAsset ? foundAsset.id : scannedId} sudah pernah dipindai hari ini.`, 'warning');
+                return;
+            }
+
+            if (!foundAsset) {
+                playBeepSound('error');
+                showToast('Aset Tidak Ditemukan', `Nomor Barcode "${barcodeText}" tidak terdaftar di Master Aset.`, 'warning');
+                return;
+            }
+
+            // SELALU BUKA MODAL FORM VERIFIKASI SEBELUM DISIMPAN
+            openOpnameModal(foundAsset, method);
+        }
+
         function saveSheetsUrl(url) {
             googleSheetsWebhookUrl = url.trim();
             localStorage.setItem('app_sheets_url', googleSheetsWebhookUrl);
@@ -1737,11 +1793,23 @@
                 const config = { fps: 10, qrbox: { width: 250, height: 150 } };
         
                 const qrCodeSuccessCallback = (decodedText) => {
+                    let rawText = decodedText.trim();
+        
+                    if (rawText.length < 8) {
+                        return; // Abaikan jika barcode terbaca terpotong
+                    }
+        
                     playBeepSound('success');
-                    closeCameraModal();
+                    closeCameraModal(); // Tutup kamera
+                    
+                    // Masukkan teks hasil scan ke input utama
                     const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) inputEl.value = decodedText;
-                    triggerOpnameLookup('Scan');
+                    if (inputEl) {
+                        inputEl.value = rawText;
+                    }
+        
+                    // Panggil pencarian dengan memaksa membuka form verifikasi (bukan auto-save)
+                    triggerOpnameLookupForVerification('Scan');
                 };
         
                 await html5QrCodeScanner.start(
