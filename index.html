@@ -197,7 +197,7 @@
                     <p class="text-slate-400 text-[10px] truncate">Petugas Internal Audit</p>
                 </div>
             </div>
-            <button onclick="requestResetData()" title="Reset data demo" class="text-slate-400 hover:text-amber-400 p-2 rounded-lg hover:bg-slate-800 text-xs shrink-0">
+            <button onclick="fetchDataFromBackend()" title="Refresh Data" class="text-slate-400 hover:text-amber-400 p-2 rounded-lg hover:bg-slate-800 text-xs shrink-0">
                 <i class="fa-solid fa-rotate-left"></i>
             </button>
         </div>
@@ -271,7 +271,7 @@
                 <div class="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/20 flex flex-col sm:flex-row items-stretch gap-2">
                     <div class="relative flex-grow">
                         <i class="fa-solid fa-barcode absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
-                        <input type="text" id="mainBarcodeInput" placeholder="Ketik No. Aset (cth: 104000003120)..." value="104000003120" class="w-full pl-10 pr-3 py-3 bg-white text-slate-900 text-xs sm:text-sm font-mono font-medium rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-daihatsu-500 placeholder:text-slate-400">
+                        <input type="text" id="mainBarcodeInput" placeholder="Ketik No. Aset..." class="w-full pl-10 pr-3 py-3 bg-white text-slate-900 text-xs sm:text-sm font-mono font-medium rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-daihatsu-500 placeholder:text-slate-400">
                     </div>
 
                     <div class="grid grid-cols-3 sm:flex items-center gap-2">
@@ -291,20 +291,6 @@
                             <span class="truncate">Proses</span>
                         </button>
                     </div>
-                </div>
-
-                <!-- Test Barcode Quick Buttons -->
-                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs pt-0.5">
-                    <span class="text-slate-300 font-medium text-[11px] sm:text-xs">Contoh No. Aset:</span>
-                    <button onclick="fillBarcodeInput('104000003120')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-astra-300 px-2 py-0.5 sm:py-1 rounded-md font-mono text-[11px] transition">
-                        🏷️ 104000003120
-                    </button>
-                    <button onclick="fillBarcodeInput('104000003645')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 px-2 py-0.5 sm:py-1 rounded-md font-mono text-[11px] transition">
-                        🏷️ 104000003645
-                    </button>
-                    <button onclick="fillBarcodeInput('105000001440')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-300 px-2 py-0.5 sm:py-1 rounded-md font-mono text-[11px] transition">
-                        🏷️ 105000001440
-                    </button>
                 </div>
             </div>
         </section>
@@ -364,7 +350,7 @@
         </section>
     </main>
 
-    <!-- VIEW 2: DAFTAR MASTER DATA ASET (Table 1 Sesuai Dokumen) -->
+    <!-- VIEW 2: DAFTAR MASTER DATA ASET -->
     <main id="masterDataView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
         <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
             <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
@@ -373,13 +359,13 @@
                         <i class="fa-solid fa-boxes-stacked text-astra-600"></i>
                         <span>Daftar Master Aset (Table1)</span>
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Database master aset Astra Daihatsu (ID Asset, Sub-Number, Business Area, Deskripsi, Capitalized On, Room)</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Database master aset Astra Daihatsu dari server</p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
                     <div class="relative min-w-[200px] flex-grow">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="tableSearchInput" onkeyup="resetPageAndRender()" placeholder="Cari ID Asset / Sub / Deskripsi / Room..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500">
+                        <input type="text" id="tableSearchInput" onkeyup="resetPageAndRender()" placeholder="Cari ID Asset / Deskripsi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500">
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -438,7 +424,7 @@
         </section>
     </main>
 
-    <!-- VIEW 3: RIWAYAT SCAN ASET (Table 2 & Form Format Dokumen Resmi) -->
+    <!-- VIEW 3: RIWAYAT SCAN ASET -->
     <main id="auditHistoryView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
@@ -476,7 +462,7 @@
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <div class="relative min-w-[200px]">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi / lokasi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500">
+                        <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500">
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -498,7 +484,7 @@
                 </div>
             </div>
 
-            <!-- Table 2 Container matching Exact Headers -->
+            <!-- Table 2 Container -->
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left text-xs border-collapse min-w-[1250px]">
                     <thead class="bg-slate-800 text-white font-semibold uppercase tracking-wider border-b border-slate-700 text-[11px]">
@@ -526,7 +512,7 @@
 
             <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
                 <span id="historyTableCountSummary">0 riwayat scan</span>
-                <span class="text-[10px] sm:text-[11px] text-slate-400">File Excel dapat langsung diexport sesuai Table2 Google Spreadsheet</span>
+                <span class="text-[10px] sm:text-[11px] text-slate-400">File Excel dapat langsung diexport</span>
             </div>
         </section>
     </main>
@@ -575,11 +561,11 @@
                 </div>
 
                 <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800">Cadangan & Pemulihan Data</h3>
-                    <p class="text-xs text-slate-500">Reset atau ekspor data sampel untuk pengujian internal aplikasi.</p>
+                    <h3 class="font-bold text-xs sm:text-sm text-slate-800">Penyinkronan Data</h3>
+                    <p class="text-xs text-slate-500">Muat ulang data secara berkala dari backend server.</p>
                     <div class="flex items-center gap-2 pt-2">
-                        <button onclick="requestResetData()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg transition shadow-xs">
-                            <i class="fa-solid fa-rotate-left mr-1.5"></i> Reset Sample Data
+                        <button onclick="fetchDataFromBackend()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition shadow-xs">
+                            <i class="fa-solid fa-arrows-rotate mr-1.5"></i> Tarik Data dari Server
                         </button>
                     </div>
                 </div>
@@ -614,10 +600,9 @@
         </button>
     </nav>
 
-    <!-- MODAL 1: FORM VERIFIKASI OPNAME & INPUT TEMUAN (Kamera / Foto Bukti) -->
+    <!-- MODAL 1: FORM VERIFIKASI OPNAME & INPUT TEMUAN -->
     <div id="opnameModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4" onclick="closeOpnameModal()">
         <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col" onclick="event.stopPropagation()">
-            <!-- Modal Header -->
             <div class="bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between shrink-0 border-b border-slate-800">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-8 h-8 rounded-lg bg-daihatsu-600 flex items-center justify-center text-white shrink-0">
@@ -633,9 +618,7 @@
                 </button>
             </div>
 
-            <!-- Modal Body Form -->
             <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar text-xs">
-                <!-- Info Banner Aset -->
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
                         <div>
@@ -653,7 +636,6 @@
                     </div>
                 </div>
 
-                <!-- Input Fields Penyesuaian Hasil Opname -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Lokasi (Opname Aktual)</label>
@@ -687,7 +669,6 @@
                     </div>
                 </div>
 
-                <!-- Bagian Aset Temuan: Lampiran Foto Fisik Kerusakan / Barcode -->
                 <div id="temuanAttachmentBox" class="border border-dashed border-slate-300 rounded-xl p-3 sm:p-4 bg-slate-50 transition">
                     <div class="flex items-center justify-between mb-2">
                         <label class="font-bold text-slate-800 flex items-center gap-1.5">
@@ -711,7 +692,6 @@
                             </button>
                         </div>
 
-                        <!-- Preview Box -->
                         <div id="temuanPreviewContainer" class="hidden flex items-center gap-2 bg-white p-1.5 border border-slate-200 rounded-lg">
                             <img id="temuanPreviewImg" src="" alt="Bukti Temuan" class="w-12 h-12 object-cover rounded border border-slate-200 cursor-pointer" onclick="viewPhotoDetail(this.src)">
                             <div class="text-[11px]">
@@ -722,14 +702,12 @@
                     </div>
                 </div>
 
-                <!-- Input Keterangan Tambahan -->
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Keterangan Tambahan</label>
-                    <textarea id="opnameInputKeterangan" rows="2" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-daihatsu-500 focus:outline-none placeholder:text-slate-400" placeholder="Contoh: Barcode pudar, kondisi bodi lecet, posisi dipindah ke lantai 2..."></textarea>
+                    <textarea id="opnameInputKeterangan" rows="2" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-daihatsu-500 focus:outline-none placeholder:text-slate-400" placeholder="Contoh: Barcode pudar, kondisi bodi lecet..."></textarea>
                 </div>
             </div>
 
-            <!-- Modal Footer -->
             <div class="bg-slate-50 px-4 sm:px-6 py-3 border-t border-slate-200 flex items-center justify-between shrink-0">
                 <button onclick="closeOpnameModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition">
                     Batal
@@ -764,7 +742,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: TAMBAH MASTER ASET (Table 1 Form) -->
+    <!-- MODAL 3: TAMBAH MASTER ASET -->
     <div id="addAssetModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4" onclick="closeAddAssetModal()">
         <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-200" onclick="event.stopPropagation()">
             <div class="bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-800">
@@ -870,14 +848,6 @@
                         <p id="cameraStatusMsg" class="text-xs font-semibold text-slate-200">Menyiapkan Kamera...</p>
                     </div>
                 </div>
-
-                <div id="cameraErrorBox" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs space-y-1">
-                    <p class="font-bold flex items-center gap-1.5 text-rose-800">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        <span>Gagal Menghubungkan Kamera</span>
-                    </p>
-                    <p id="cameraErrorText" class="text-[11px] text-rose-600 leading-relaxed">Browser menolak akses kamera.</p>
-                </div>
             </div>
 
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex justify-end">
@@ -889,20 +859,15 @@
     </div>
 
     <script>
+        // --- DATA STATE & CONFIGURATION ---
+        const branchNames = {
+            "D660": "LAMPUNG A. YANI",
+            "D661": "LAMPUNG S. HATTA",
+            "D662": "BANDAR JAYA",
+            "D663": "LAMPUNG UTARA",
+            "D664": "LAMPUNG TIMUR"
+        };
 
-        // --- FUNGSI HELPER DASAR YANG HILANG ---
-        function safeSetText(id, text) {
-            const el = document.getElementById(id);
-            if (el) el.innerText = text;
-        }
-    
-        function safeGetValue(id, fallback = '') {
-            const el = document.getElementById(id);
-            return el ? el.value : fallback;
-        }
-    
-        // Variabel global utama scanner
-        let html5QrCodeScanner = null;
         let assets = [];
         let historyLogs = [];
         let activeOpnameAsset = null;
@@ -912,27 +877,61 @@
         let pendingConfirmCallback = null;
         let currentPage = 1;
         const itemsPerPage = 15;
+        let html5QrCodeScanner = null;
+        let isAutoSaveMode = true;
+        let googleSheetsWebhookUrl = localStorage.getItem('app_sheets_url') || '';
+
+        // API Backend Proxy URL (Connected via Google Apps Script or Proxy Endpoint)
         const PROXY_API_URL = "/api/proxy";
-        
+
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        }
+    
+        function safeGetValue(id, fallback = '') {
+            const el = document.getElementById(id);
+            return el ? el.value : fallback;
+        }
+
+        // --- BACKEND DATABASE INTEGRATION ---
         function fetchDataFromBackend() {
             showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
         
             fetch(`${PROXY_API_URL}?action=getAssets`)
                 .then(res => res.json())
                 .then(res => {
-                    if (res.status === "success") {
+                    if (res.status === "success" && Array.isArray(res.data)) {
                         assets = res.data;
-                        saveState();
                         renderKPIs();
                         renderTable();
-                        showToast('Sukses', 'Data master berhasil dimuat.', 'success');
+                        renderHistoryTable();
+                        renderRecapView();
+                        showToast('Sukses', 'Data master berhasil dimuat dari server.', 'success');
+                    } else {
+                        showToast('Informasi', 'Menggunakan data lokal / server kosong.', 'info');
                     }
                 })
-                .catch(err => console.error("Error:", err));
+                .catch(err => {
+                    console.error("Backend Error:", err);
+                    showToast('Koneksi Server', 'Gagal terhubung ke backend API. Pastikan endpoint aktif.', 'warning');
+                });
         }
 
-        // Contoh saat mengirim log hasil opname ke server via proxy
         function sendLogToServer(logData) {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run.saveScanLog(logData);
+            }
+
+            if (googleSheetsWebhookUrl) {
+                fetch(googleSheetsWebhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(logData)
+                }).catch(err => console.log('Sheets Sync Error:', err));
+            }
+
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -940,17 +939,10 @@
                     action: "addLog",
                     data: logData
                 })
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === "success") {
-                    console.log("Log tersimpan aman via proxy.");
-                }
-            })
-            .catch(err => console.error("Gagal sync log:", err));
+            }).catch(err => console.log("Proxy sync log error:", err));
         }
-        
-        // Web Audio API Audio Beep Generator for Barcode Scanner
+
+        // --- AUDIO FEEDBACK ---
         function playBeepSound(type = 'success') {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -964,7 +956,7 @@
 
                 if (type === 'success') {
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 pitch
+                    osc.frequency.setValueAtTime(880, ctx.currentTime);
                     gain.gain.setValueAtTime(0.15, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
                     osc.start(ctx.currentTime);
@@ -977,13 +969,8 @@
                     osc.start(ctx.currentTime);
                     osc.stop(ctx.currentTime + 0.3);
                 }
-            } catch (e) {
-                // Audio context not allowed or unsupported
-            }
+            } catch (e) {}
         }
-
-        let isAutoSaveMode = true;
-        let googleSheetsWebhookUrl = localStorage.getItem('app_sheets_url') || '';
 
         function toggleAutoSaveMode(enabled) {
             isAutoSaveMode = enabled;
@@ -1009,7 +996,11 @@
             }
         }
 
-        // Trigger Opname Lookup and auto-save directly or open verification modal
+        function updateAuditorName(name) {
+            safeSetText('sidebarAuditorName', name || 'Petugas Audit');
+        }
+
+        // --- OPNAME LOOKUP & SCAN HANDLERS ---
         function triggerOpnameLookup(method = 'Scan') {
             const inputEl = document.getElementById('mainBarcodeInput');
             if (!inputEl) return;
@@ -1021,13 +1012,15 @@
                 return;
             }
 
-            // Match asset by ID or ID with subNumber
-            let foundAsset = assets.find(a => 
-                a.id.toLowerCase() === barcodeText.toLowerCase() || 
-                `${a.id} ${a.subNumber}`.toLowerCase() === barcodeText.toLowerCase()
-            );
+            let parts = barcodeText.split(" ");
+            let idAsset = parts[0];
+            let subNum = parts[1] || "0";
 
-            // Handle Unregistered Asset if missing in Table 1
+            let foundAsset = assets.find(a => 
+                a.id.toLowerCase() === idAsset.toLowerCase() && 
+                (a.subNumber || '0').toLowerCase() === subNum.toLowerCase()
+            ) || assets.find(a => a.id.toLowerCase() === barcodeText.toLowerCase());
+
             if (!foundAsset) {
                 playBeepSound('error');
                 askConfirm(
@@ -1035,10 +1028,10 @@
                     `Nomor Aset "${barcodeText}" belum ada di Master Data (Table1). Tetap simpan sebagai Aset Temuan Baru ke Database (Table2)?`,
                     () => {
                         const tempAsset = {
-                            id: barcodeText,
-                            subNumber: "0",
+                            id: idAsset,
+                            subNumber: subNum,
                             cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
-                            deskripsi: `TEMUAN_ASET_${barcodeText}`,
+                            deskripsi: `TEMUAN_ASET_${idAsset}`,
                             capitalizedOn: "-",
                             lokasi: "TEMUAN_OPNAME"
                         };
@@ -1048,7 +1041,6 @@
                 return;
             }
 
-            // If Auto-Save Mode is ENABLED and scanning via Camera/Upload
             if (isAutoSaveMode && method !== 'Manual') {
                 executeDirectAutoSave(foundAsset, method);
             } else {
@@ -1056,7 +1048,6 @@
             }
         }
 
-        // Directly execute auto-save into Table 2 database
         function executeDirectAutoSave(assetObj, method, customNote = "") {
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
@@ -1078,42 +1069,18 @@
                 keterangan: customNote || "Scan otomatis berhasil - Kondisi terverifikasi"
             };
 
-            // 1. Save to local array database
             historyLogs.unshift(newHistoryLog);
-            saveState();
-
-            // 2. Play Audio Beep Feedback
             playBeepSound('success');
+            sendLogToServer(newHistoryLog);
 
-            // 3. Send to Google Sheets Apps Script or Webhook if configured
-            syncToGoogleSheetsDatabase(newHistoryLog);
-
-            // 4. Update UI
-            showToast('Scan & Tersimpan!', `Aset ${assetObj.id} (${assetObj.deskripsi}) langsung masuk ke Database (Table 2).`, 'success');
+            showToast('Scan & Tersimpan!', `Aset ${assetObj.id} (${assetObj.deskripsi}) langsung masuk ke Database.`, 'success');
 
             renderKPIs();
             renderHistoryTable();
             renderRecapView();
         }
 
-        // Send log data to connected Google Sheets Web App / Apps Script
-        function syncToGoogleSheetsDatabase(logData) {
-            // Google Apps Script HTML Container Environment
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                google.script.run.saveScanLog(logData);
-            }
-
-            // External Webhook URL Sync
-            if (googleSheetsWebhookUrl) {
-                fetch(googleSheetsWebhookUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(logData)
-                }).catch(err => console.log('Sheets Sync Error:', err));
-            }
-        }
-
+        // --- UI UTILITIES & TOASTS ---
         function showToast(title, message, type = 'success') {
             const toastBox = document.getElementById('toastBox');
             if (!toastBox) return;
@@ -1145,13 +1112,6 @@
                 toastBox.classList.remove('translate-y-0');
                 toastBox.classList.add('-translate-y-32');
             }
-        }
-
-        function showCustomAlert(title, message) {
-            safeSetText('infoModalTitle', title);
-            safeSetText('infoModalMessage', message);
-            const modal = document.getElementById('infoModal');
-            if (modal) modal.classList.remove('hidden');
         }
 
         function closeInfoModal() {
@@ -1274,31 +1234,7 @@
             renderRecapView();
         }
 
-        // Trigger Opname Lookup and open the Opname Verification Form
-        function triggerOpnameLookup(method = 'Scan') {
-            const inputEl = document.getElementById('mainBarcodeInput');
-            if (!inputEl) return;
-
-            const barcodeText = inputEl.value.trim();
-            if (!barcodeText) {
-                showToast('Input Kosong', 'Harap masukkan ID Asset barcode terlebih dahulu.', 'warning');
-                return;
-            }
-
-            // Match asset by ID or ID with subNumber
-            const foundAsset = assets.find(a => 
-                a.id.toLowerCase() === barcodeText.toLowerCase() || 
-                `${a.id} ${a.subNumber}`.toLowerCase() === barcodeText.toLowerCase()
-            );
-
-            if (!foundAsset) {
-                showCustomAlert('Aset Tidak Ditemukan', `Nomor Barcode "${barcodeText}" tidak terdaftar dalam Master Aset (Table1).`);
-                return;
-            }
-
-            openOpnameModal(foundAsset, method);
-        }
-
+        // --- OPNAME MODAL ACTIONS ---
         function openOpnameModal(assetObj, method) {
             activeOpnameAsset = assetObj;
             activeOpnameMethod = method;
@@ -1314,15 +1250,6 @@
 
             const metodeInput = document.getElementById('opnameInputMetode');
             if (metodeInput) metodeInput.value = method;
-
-            const statusAset = document.getElementById('opnameInputStatusAset');
-            if (statusAset) statusAset.value = "Baik";
-
-            const statusLabel = document.getElementById('opnameInputStatusLabel');
-            if (statusLabel) statusLabel.value = "Baik";
-
-            const ketInput = document.getElementById('opnameInputKeterangan');
-            if (ketInput) ketInput.value = "";
 
             clearEvidencePhoto();
             toggleAttachmentHighlight();
@@ -1432,15 +1359,10 @@
             };
 
             historyLogs.unshift(newHistoryLog);
-            saveState();
-
-            // Send to Google Sheets if running under Apps Script
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                google.script.run.saveScanLog(newHistoryLog);
-            }
+            sendLogToServer(newHistoryLog);
 
             closeOpnameModal();
-            showToast('Opname Tersimpan', `Hasil verifikasi ${activeOpnameAsset.id} berhasil dicatat di Riwayat (Table2).`, 'success');
+            showToast('Opname Tersimpan', `Hasil verifikasi ${activeOpnameAsset.id} berhasil dicatat.`, 'success');
 
             renderKPIs();
             renderHistoryTable();
@@ -1452,6 +1374,7 @@
             if (inputEl) inputEl.value = assetId;
         }
 
+        // --- DASHBOARD KPIS ---
         function renderKPIs() {
             const branchVal = safeGetValue('branchSelector', 'ALL');
             const scopedAssets = branchVal === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(branchVal) || branchVal.startsWith(a.cabang));
@@ -1473,7 +1396,7 @@
             safeSetText('labelFilterDesc', branchVal === 'ALL' ? 'Master Data Internal (Table1)' : `Cabang: ${branchVal}`);
         }
 
-        // RENDER TABLE 1: DAFTAR MASTER ASET
+        // --- TABLE 1 RENDERING ---
         function renderTable() {
             const searchVal = safeGetValue('tableSearchInput').toLowerCase().trim();
             const branchVal = safeGetValue('branchSelector', 'ALL');
@@ -1506,7 +1429,7 @@
                     <tr>
                         <td colspan="7" class="text-center py-8 text-slate-400">
                             <i class="fa-solid fa-box-open text-2xl mb-1 block"></i>
-                            Tidak ada data aset yang cocok dengan filter.
+                            Tidak ada data aset ditemukan dari database. Silakan klik refresh atau sinkronisasi.
                         </td>
                     </tr>`;
             } else {
@@ -1584,7 +1507,7 @@
             renderTable();
         }
 
-        // RENDER TABLE 2: LOG PEMINDAIAN RIWAYAT OPNAME (12 Kolom Lengkap)
+        // --- TABLE 2 HISTORY RENDERING ---
         function renderHistoryTable() {
             const searchVal = safeGetValue('historySearchInput').toLowerCase().trim();
             const methodVal = safeGetValue('historyMethodFilter', 'ALL');
@@ -1603,7 +1526,6 @@
                 return matchSearch && matchMethod && matchBranch;
             });
 
-            // Update Metrics
             safeSetText('histStatTotal', historyLogs.length);
             safeSetText('histStatValid', historyLogs.filter(h => h.statusAset === 'Baik').length);
             safeSetText('histStatDamaged', historyLogs.filter(h => h.statusAset !== 'Baik' || h.asetTemuan).length);
@@ -1614,29 +1536,25 @@
                     <tr>
                         <td colspan="13" class="text-center py-8 text-slate-400">
                             <i class="fa-solid fa-clock-rotate-left text-2xl mb-1 block"></i>
-                            Belum ada riwayat stock opname yang sesuai filter.
+                            Belum ada riwayat stock opname tercatat.
                         </td>
                     </tr>`;
             } else {
                 filtered.forEach((item, index) => {
-                    // Status Aset Badge
                     const isAsetBaik = item.statusAset === 'Baik';
                     const asetBadge = isAsetBaik
                         ? `<span class="bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full text-[10px]"><i class="fa-solid fa-circle-check text-[9px] mr-1"></i>${item.statusAset}</span>`
                         : `<span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full text-[10px]"><i class="fa-solid fa-circle-exclamation text-[9px] mr-1"></i>${item.statusAset}</span>`;
 
-                    // Status Label Badge
                     const isLabelBaik = item.statusLabel === 'Baik';
                     const labelBadge = isLabelBaik
                         ? `<span class="bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded text-[10px] border border-emerald-200">Baik</span>`
                         : `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px] border border-amber-300">${item.statusLabel}</span>`;
 
-                    // Metode Badge
                     const metodeBadge = item.metodeOpname === 'Scan'
                         ? `<span class="font-medium text-astra-700 bg-astra-50 px-2 py-0.5 rounded border border-astra-200"><i class="fa-solid fa-barcode text-[9px] mr-1"></i>Scan</span>`
                         : `<span class="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200"><i class="fa-solid fa-keyboard text-[9px] mr-1"></i>Manual</span>`;
 
-                    // Aset Temuan (Photo Bukti)
                     let fotoHtml = `<span class="text-slate-400 italic text-[11px]">-</span>`;
                     if (item.asetTemuan) {
                         fotoHtml = `
@@ -1675,7 +1593,6 @@
             safeSetText('historyTableCountSummary', `Menampilkan ${filtered.length} dari total ${historyLogs.length} riwayat log pemindaian`);
         }
 
-        // Export Log Riwayat ke Excel Sesuai Table2 Google Sheets
         function exportHistoryToExcel() {
             try {
                 const exportData = historyLogs.map((h, i) => ({
@@ -1709,7 +1626,7 @@
             }
         }
 
-        // Add New Asset to Master Aset (Table 1)
+        // --- ADD MASTER ASSET ---
         function openAddAssetModal() {
             const modal = document.getElementById('addAssetModal');
             if (modal) modal.classList.remove('hidden');
@@ -1750,21 +1667,19 @@
             };
 
             assets.unshift(newAsset);
-            saveState();
             closeAddAssetModal();
-            showToast('Aset Ditambahkan', `Aset ${id} berhasil didaftarkan ke Master Aset.`, 'success');
+            showToast('Aset Ditambahkan', `Aset ${id} berhasil didaftarkan.`, 'success');
 
             renderKPIs();
             renderTable();
             renderRecapView();
 
-            // Reset form
             document.getElementById('newAssetId').value = '';
             document.getElementById('newAssetDesc').value = '';
             document.getElementById('newAssetRoom').value = '';
         }
 
-        // Camera Live Scanner Setup
+        // --- CAMERA SCANNER INTEGRATION ---
         function openCameraModal() {
             const modal = document.getElementById('cameraModal');
             if (!modal) return;
@@ -1782,49 +1697,34 @@
 
         async function initCameraStream() {
             const overlay = document.getElementById('cameraStatusOverlay');
-            const readerElement = document.getElementById('cameraReader');
-            
             if (overlay) {
                 overlay.classList.remove('hidden');
                 overlay.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-astra-400 mb-2"></i><p class="text-xs">Menginisialisasi Kamera...</p>';
             }
         
-            // Pastikan scanner sebelumnya benar-benar bersih
             await stopActiveScanner();
         
             try {
                 html5QrCodeScanner = new Html5Qrcode("cameraReader");
-                
-                const config = {
-                    fps: 10,
-                    qrbox: { width: 250, height: 150 }
-                };
+                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
         
                 const qrCodeSuccessCallback = (decodedText) => {
-                    // Berhasil scan barcode!
                     playBeepSound('success');
                     closeCameraModal();
                     const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) {
-                        inputEl.value = decodedText;
-                    }
+                    if (inputEl) inputEl.value = decodedText;
                     triggerOpnameLookup('Scan');
                 };
         
-                // Coba langsung gunakan kamera belakang (environment)
                 await html5QrCodeScanner.start(
                     { facingMode: "environment" },
                     config,
                     qrCodeSuccessCallback,
-                    (errorMessage) => {
-                        // Error scanning frame (diabaikan saja karena berjalan terus tiap detik)
-                    }
+                    (errorMessage) => {}
                 );
         
                 if (overlay) overlay.classList.add('hidden');
-        
             } catch (err) {
-                console.error("Gagal buka kamera:", err);
                 if (overlay) {
                     overlay.innerHTML = `
                         <div class="text-center p-3 text-rose-400 space-y-1">
@@ -1838,22 +1738,16 @@
         }
 
         async function closeCameraModal() {
-            // 1. Matikan scanner aktif terlebih dahulu agar tidak nyangkut
             if (typeof html5QrCodeScanner !== 'undefined' && html5QrCodeScanner) {
                 try {
                     await html5QrCodeScanner.stop();
                     html5QrCodeScanner.clear();
-                } catch (e) {
-                    console.log("Scanner sudah berhenti:", e);
-                }
+                } catch (e) {}
                 html5QrCodeScanner = null;
             }
         
-            // 2. Sembunyikan modal kameranya
             const modal = document.getElementById('cameraModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
+            if (modal) modal.classList.add('hidden');
         }
 
         function handleFileScan(event) {
@@ -1872,7 +1766,7 @@
                 });
         }
 
-        // View 4: Rekapitulasi per Cabang & Ruangan
+        // --- RECAP VIEW RENDERING ---
         function renderRecapView() {
             const container = document.getElementById('recapBranchCards');
             const summaryBar = document.getElementById('recapSummaryBar');
@@ -2048,7 +1942,6 @@
                 'Apakah Anda yakin ingin membersihkan seluruh log riwayat pemindaian (Table2)?',
                 () => {
                     historyLogs = [];
-                    saveState();
                     renderHistoryTable();
                     renderKPIs();
                     renderRecapView();
@@ -2057,26 +1950,9 @@
             );
         }
 
-        function requestResetData() {
-            askConfirm(
-                'Reset Data Demo',
-                'Apakah Anda yakin ingin mengembalikan seluruh data master aset dan riwayat ke kondisi awal?',
-                () => {
-                    assets = [...defaultAssets];
-                    historyLogs = defaultHistory.map(h => ({ ...h }));
-                    saveState();
-                    renderKPIs();
-                    renderTable();
-                    renderHistoryTable();
-                    renderRecapView();
-                    showToast('Data Direset', 'Data aset & riwayat telah dikembalikan ke kondisi awal.', 'info');
-                }
-            );
-        }
-
+        // --- INITIALIZATION ---
         window.onload = function () {
-            // Panggil fungsi tarik data database saat halaman pertama kali dimuat
-            fetchDataFromBackend(); 
+            fetchDataFromBackend();
 
             renderKPIs();
             renderTable();
