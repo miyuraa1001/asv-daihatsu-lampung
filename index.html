@@ -275,10 +275,19 @@
                     </div>
 
                     <div class="grid grid-cols-3 sm:flex items-center gap-2">
+                        <!-- Tombol Kamera Web (Live Scanner) -->
                         <button onclick="openCameraModal()" class="bg-astra-600 hover:bg-astra-700 active:bg-astra-800 text-white font-bold text-xs px-2.5 sm:px-4 py-3 rounded-lg flex items-center justify-center space-x-1 sm:space-x-1.5 transition shadow-md">
                             <i class="fa-solid fa-camera"></i>
-                            <span class="truncate">Kamera</span>
+                            <span class="truncate">Kamera Web</span>
                         </button>
+
+                        <!-- TOMBOL ALTERNATIF: Kamera Bawaan HP Langsung -->
+                        <label class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs px-2.5 sm:px-4 py-3 rounded-lg flex items-center justify-center space-x-1 sm:space-x-1.5 transition shadow-md cursor-pointer text-center">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                            <span class="truncate">Kamera HP</span>
+                            <!-- capture="environment" langsung memicu kamera belakang HP -->
+                            <input type="file" accept="image/*" capture="environment" onchange="handleNativeCameraScan(event)" class="hidden">
+                        </label>
 
                         <label class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs px-2.5 sm:px-4 py-3 rounded-lg flex items-center justify-center space-x-1 sm:space-x-1.5 transition shadow-md cursor-pointer text-center">
                             <i class="fa-solid fa-image"></i>
@@ -931,24 +940,30 @@
         }
 
         function sendLogToServer(logData) {
+            // 1. Jika dijalankan di dalam lingkungan Google Apps Script Web App / HtmlService
             if (typeof google !== 'undefined' && google.script && google.script.run) {
-                google.script.run.saveScanLog(logData);
+                google.script.run
+                    .withSuccessHandler(res => console.log("Tersimpan ke Sheets:", res))
+                    .withFailureHandler(err => console.error("Gagal simpan ke Sheets:", err))
+                    .saveScanLog(logData);
             }
 
+            // 2. Jika menggunakan Webhook eksternal URL
             if (googleSheetsWebhookUrl) {
                 fetch(googleSheetsWebhookUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logData)
-                }).catch(err => console.log('Sheets Sync Error:', err));
+                }).catch(err => console.log('Sheets Webhook Error:', err));
             }
 
+            // 3. Sinkronisasi via Proxy API Vercel (jika ada)
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: "addLog",
+                    action: "saveScanLog", // Pastikan action ini ditangkap backend
                     data: logData
                 })
             }).catch(err => console.log("Proxy sync log error:", err));
@@ -1378,6 +1393,76 @@
                     badge.className = "text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full";
                 }
             }
+        }
+
+        // Fungsi untuk memproses foto dari kamera bawaan HP (Alternatif)
+        function handleNativeCameraScan(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Memindai Foto', 'Mendeteksi barcode dari foto kamera HP...', 'info');
+
+            const html5QrCode = new Html5Qrcode("cameraReader");
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    let rawText = decodedText.trim();
+                    playBeepSound('success');
+
+                    // Masukkan ke input utama
+                    const inputEl = document.getElementById('mainBarcodeInput');
+                    if (inputEl) inputEl.value = rawText;
+
+                    // Pecah string ID dan Sub-Number
+                    let cleanedText = rawText.replace(/[-_]/g, " ");
+                    let parts = cleanedText.split(/\s+/);
+                    let scannedId = parts[0].trim().toLowerCase();
+                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
+
+                    // Cari di database Master Aset (Table 1)
+                    let foundAsset = assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                        return dbId === scannedId && dbSub === scannedSub;
+                    }) || assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        return dbId === scannedId;
+                    });
+
+                    let targetAsset = foundAsset || {
+                        id: scannedId,
+                        subNumber: scannedSub,
+                        cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
+                        deskripsi: `TEMUAN_ASET_${scannedId}`,
+                        capitalizedOn: "-",
+                        lokasi: "TEMUAN_OPNAME"
+                    };
+
+                    // Cek duplikat harian
+                    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+                    const alreadyScannedToday = historyLogs.some(h => {
+                        let hId = String(h.assetId || "").trim().toLowerCase();
+                        let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                        let hDate = String(h.tanggalScan || "").trim();
+                        
+                        return hId === String(targetAsset.id).trim().toLowerCase() && 
+                               hSub === String(targetAsset.subNumber || "0").trim().toLowerCase() && 
+                               hDate === todayStr;
+                    });
+
+                    if (alreadyScannedToday) {
+                        playBeepSound('error');
+                        showToast('Aset Sudah Terscan', `Aset ${targetAsset.id} sudah pernah dipindai hari ini.`, 'warning');
+                        return;
+                    }
+
+                    // Langsung buka modal form verifikasi opname
+                    openOpnameModal(targetAsset, 'Scan');
+                })
+                .catch(err => {
+                    playBeepSound('error');
+                    showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas, fokus, dan pas di dalam bidikan.', 'warning');
+                });
         }
 
         function handleEvidencePhoto(event) {
