@@ -1760,46 +1760,58 @@
 
         async function initCameraStream() {
             const overlay = document.getElementById('cameraStatusOverlay');
-            const errorBox = document.getElementById('cameraErrorBox');
-            const errorText = document.getElementById('cameraErrorText');
-
-            if (overlay) overlay.classList.remove('hidden');
-            if (errorBox) errorBox.classList.add('hidden');
-
+            const readerElement = document.getElementById('cameraReader');
+            
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-astra-400 mb-2"></i><p class="text-xs">Menginisialisasi Kamera...</p>';
+            }
+        
+            // Pastikan scanner sebelumnya benar-benar bersih
             await stopActiveScanner();
-
+        
             try {
                 html5QrCodeScanner = new Html5Qrcode("cameraReader");
+                
                 const config = {
-                    fps: 15,
-                    qrbox: (w, h) => ({ width: Math.floor(w * 0.85), height: Math.floor(h * 0.38) })
+                    fps: 10,
+                    qrbox: { width: 250, height: 150 }
                 };
-
-                const onScanSuccess = (decodedText) => {
+        
+                const qrCodeSuccessCallback = (decodedText) => {
+                    // Berhasil scan barcode!
+                    playBeepSound('success');
                     closeCameraModal();
                     const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) inputEl.value = decodedText;
+                    if (inputEl) {
+                        inputEl.value = decodedText;
+                    }
                     triggerOpnameLookup('Scan');
                 };
-
-                try {
-                    await html5QrCodeScanner.start({ facingMode: "environment" }, config, onScanSuccess, () => {});
-                    if (overlay) overlay.classList.add('hidden');
-                    return;
-                } catch (envErr) {}
-
-                const devices = await Html5Qrcode.getCameras();
-                if (devices && devices.length > 0) {
-                    const backCam = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('rear')) || devices[0];
-                    await html5QrCodeScanner.start(backCam.id, config, onScanSuccess, () => {});
-                    if (overlay) overlay.classList.add('hidden');
-                } else {
-                    throw new Error("Tidak ada kamera yang terdeteksi.");
-                }
-            } catch (err) {
+        
+                // Coba langsung gunakan kamera belakang (environment)
+                await html5QrCodeScanner.start(
+                    { facingMode: "environment" },
+                    config,
+                    qrCodeSuccessCallback,
+                    (errorMessage) => {
+                        // Error scanning frame (diabaikan saja karena berjalan terus tiap detik)
+                    }
+                );
+        
                 if (overlay) overlay.classList.add('hidden');
-                if (errorBox) errorBox.classList.remove('hidden');
-                if (errorText) errorText.innerText = err.message || "Gagal mengaktifkan kamera.";
+        
+            } catch (err) {
+                console.error("Gagal buka kamera:", err);
+                if (overlay) {
+                    overlay.innerHTML = `
+                        <div class="text-center p-3 text-rose-400 space-y-1">
+                            <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i>
+                            <p class="text-xs font-bold">Gagal Mengakses Kamera</p>
+                            <p class="text-[10px] text-slate-300">Pastikan izin kamera di browser sudah diaktifkan dan gunakan HTTPS.</p>
+                        </div>
+                    `;
+                }
             }
         }
 
