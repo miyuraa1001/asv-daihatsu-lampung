@@ -1804,9 +1804,22 @@
         }
 
         async function closeCameraModal() {
-            await stopActiveScanner();
+            // 1. Matikan scanner aktif terlebih dahulu agar tidak nyangkut
+            if (typeof html5QrCodeScanner !== 'undefined' && html5QrCodeScanner) {
+                try {
+                    await html5QrCodeScanner.stop();
+                    html5QrCodeScanner.clear();
+                } catch (e) {
+                    console.log("Scanner sudah berhenti:", e);
+                }
+                html5QrCodeScanner = null;
+            }
+        
+            // 2. Sembunyikan modal kameranya
             const modal = document.getElementById('cameraModal');
-            if (modal) modal.classList.add('hidden');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
         }
 
         function handleFileScan(event) {
