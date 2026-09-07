@@ -889,7 +889,29 @@
     </div>
 
     <script>
-        // Cukup panggil URL internal Vercel ini! Sangat bersih dan aman.
+
+        // --- FUNGSI HELPER DASAR YANG HILANG ---
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        }
+    
+        function safeGetValue(id, fallback = '') {
+            const el = document.getElementById(id);
+            return el ? el.value : fallback;
+        }
+    
+        // Variabel global utama scanner
+        let html5QrCodeScanner = null;
+        let assets = [];
+        let historyLogs = [];
+        let activeOpnameAsset = null;
+        let activeOpnameMethod = 'Scan';
+        let activeEvidencePhoto = null;
+        let toastTimeout = null;
+        let pendingConfirmCallback = null;
+        let currentPage = 1;
+        const itemsPerPage = 15;
         const PROXY_API_URL = "/api/proxy";
         
         function fetchDataFromBackend() {
