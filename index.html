@@ -1012,15 +1012,28 @@
                 return;
             }
 
+            // 1. Pecah string barcode berdasarkan spasi (jika ada format "ID SUB")
             let parts = barcodeText.split(" ");
-            let idAsset = parts[0];
-            let subNum = parts[1] || "0";
+            let scannedId = parts[0].trim().toLowerCase();
+            let scannedSub = (parts[1] || "0").trim().toLowerCase();
 
-            let foundAsset = assets.find(a => 
-                a.id.toLowerCase() === idAsset.toLowerCase() && 
-                (a.subNumber || '0').toLowerCase() === subNum.toLowerCase()
-            ) || assets.find(a => a.id.toLowerCase() === barcodeText.toLowerCase());
+            // 2. Cari data di array assets dengan konversi string yang aman
+            let foundAsset = assets.find(a => {
+                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
 
+                return dbId === scannedId && dbSub === scannedSub;
+            });
+
+            // 3. Fallback: Jika tidak ketemu dengan sub-number, coba cari berdasarkan ID utamanya saja
+            if (!foundAsset) {
+                foundAsset = assets.find(a => {
+                    let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                    return dbId === scannedId;
+                });
+            }
+
+            // Handle jika aset benar-benar tidak terdaftar di Master Data (Table 1)
             if (!foundAsset) {
                 playBeepSound('error');
                 askConfirm(
@@ -1028,10 +1041,10 @@
                     `Nomor Aset "${barcodeText}" belum ada di Master Data (Table1). Tetap simpan sebagai Aset Temuan Baru ke Database (Table2)?`,
                     () => {
                         const tempAsset = {
-                            id: idAsset,
-                            subNumber: subNum,
+                            id: scannedId,
+                            subNumber: scannedSub,
                             cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
-                            deskripsi: `TEMUAN_ASET_${idAsset}`,
+                            deskripsi: `TEMUAN_ASET_${scannedId}`,
                             capitalizedOn: "-",
                             lokasi: "TEMUAN_OPNAME"
                         };
@@ -1047,7 +1060,6 @@
                 openOpnameModal(foundAsset, method);
             }
         }
-
         function executeDirectAutoSave(assetObj, method, customNote = "") {
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
