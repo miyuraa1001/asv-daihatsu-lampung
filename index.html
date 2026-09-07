@@ -940,33 +940,44 @@
         }
 
         function sendLogToServer(logData) {
-            // 1. Jika dijalankan di dalam lingkungan Google Apps Script Web App / HtmlService
+            // 1. Jika aplikasi berjalan langsung di dalam container Google Apps Script
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
-                    .withSuccessHandler(res => console.log("Tersimpan ke Sheets:", res))
-                    .withFailureHandler(err => console.error("Gagal simpan ke Sheets:", err))
+                    .withSuccessHandler(res => console.log("Tersimpan ke Sheets via GAS:", res))
+                    .withFailureHandler(err => console.error("Gagal simpan ke Sheets via GAS:", err))
                     .saveScanLog(logData);
+                return;
             }
 
-            // 2. Jika menggunakan Webhook eksternal URL
+            // 2. Jika menggunakan URL Web App Google Apps Script langsung (Deployment Web App)
+            // Masukkan URL Web App Apps Script Anda di variabel ini jika ada, atau gunakan PROXY_API_URL
             if (googleSheetsWebhookUrl) {
                 fetch(googleSheetsWebhookUrl, {
                     method: 'POST',
-                    mode: 'no-cors',
+                    mode: 'no-cors', // Wajib no-cors untuk Apps Script Web App eksternal
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(logData)
+                }).then(() => {
+                    console.log("Log terkirim ke Webhook Google Sheets.");
                 }).catch(err => console.log('Sheets Webhook Error:', err));
             }
 
-            // 3. Sinkronisasi via Proxy API Vercel (jika ada)
+            // 3. Kirim via Proxy API Vercel / Backend Endpoint
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: "saveScanLog", // Pastikan action ini ditangkap backend
+                    action: "addLog",
                     data: logData
                 })
-            }).catch(err => console.log("Proxy sync log error:", err));
+            })
+            .then(res => res.json())
+            .then(res => {
+                console.log("Response dari Server Database:", res);
+            })
+            .catch(err => {
+                console.log("Catatan: Data tersimpan di memori lokal, namun gagal sync ke server proxy:", err);
+            });
         }
 
         // --- AUDIO FEEDBACK ---
