@@ -357,7 +357,7 @@
                 <div>
                     <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                         <i class="fa-solid fa-boxes-stacked text-astra-600"></i>
-                        <span>Daftar Master Aset (Table1)</span>
+                        <span>Daftar Master Aset </span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Database master aset Astra Daihatsu dari server</p>
                 </div>
@@ -454,7 +454,7 @@
                 <div>
                     <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-astra-600"></i>
-                        <span>Log Pemindaian (Table2 - Stock Opname)</span>
+                        <span>Log Pemindaian (Stock Opname)</span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi riwayat scan fisik, status aset, label, dan lampiran foto temuan</p>
                 </div>
@@ -1012,33 +1012,47 @@
                 return;
             }
 
-            // 1. Pecah string barcode berdasarkan spasi (jika ada format "ID SUB")
-            let parts = barcodeText.split(" ");
+            // 1. Tangani berbagai variasi pemisah dari scanner (spasi, strip, atau gabungan)
+            let cleanedText = barcodeText.replace(/[-_]/g, " ");
+            let parts = cleanedText.split(/\s+/);
             let scannedId = parts[0].trim().toLowerCase();
             let scannedSub = (parts[1] || "0").trim().toLowerCase();
 
-            // 2. Cari data di array assets dengan konversi string yang aman
+            // 2. Pencarian data di Master Aset (Table 1) dengan toleransi tipe data
             let foundAsset = assets.find(a => {
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
-
                 return dbId === scannedId && dbSub === scannedSub;
+            }) || assets.find(a => {
+                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                return dbId === scannedId;
             });
 
-            // 3. Fallback: Jika tidak ketemu dengan sub-number, coba cari berdasarkan ID utamanya saja
-            if (!foundAsset) {
-                foundAsset = assets.find(a => {
-                    let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                    return dbId === scannedId;
-                });
+            // 3. Cek apakah aset ini sudah pernah di-scan HARI INI di riwayat (Table 2)
+            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+            const alreadyScannedToday = historyLogs.some(h => {
+                let hId = String(h.assetId || "").trim().toLowerCase();
+                let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                let hDate = String(h.tanggalScan || "").trim();
+                
+                let targetId = foundAsset ? String(foundAsset.id).trim().toLowerCase() : scannedId;
+                let targetSub = foundAsset ? String(foundAsset.subNumber || "0").trim().toLowerCase() : scannedSub;
+
+                return hId === targetId && hSub === targetSub && hDate === todayStr;
+            });
+
+            if (alreadyScannedToday) {
+                playBeepSound('error');
+                showToast('Aset Sudah Terscan', `Aset ${foundAsset ? foundAsset.id : scannedId} sudah pernah dipindai hari ini.`, 'warning');
+                return;
             }
 
-            // Handle jika aset benar-benar tidak terdaftar di Master Data (Table 1)
+            // 4. Jika aset belum terdaftar di Master Data
             if (!foundAsset) {
                 playBeepSound('error');
                 askConfirm(
                     'Aset Tidak Terdaftar di Master Data',
-                    `Nomor Aset "${barcodeText}" belum ada di Master Data (Table1). Tetap simpan sebagai Aset Temuan Baru ke Database (Table2)?`,
+                    `Nomor Aset "${barcodeText}" belum ada di Master Data . Tetap simpan sebagai Aset Temuan Baru ke Database ?`,
                     () => {
                         const tempAsset = {
                             id: scannedId,
@@ -1054,12 +1068,14 @@
                 return;
             }
 
+            // 5. Eksekusi simpan otomatis atau buka modal verifikasi
             if (isAutoSaveMode && method !== 'Manual') {
                 executeDirectAutoSave(foundAsset, method);
             } else {
                 openOpnameModal(foundAsset, method);
             }
         }
+        
         function executeDirectAutoSave(assetObj, method, customNote = "") {
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
@@ -1220,8 +1236,8 @@
 
             const titleMap = {
                 dashboard: "Stock Opname",
-                masterdata: "Daftar Aset (Table1)",
-                history: "Riwayat Scan (Table2)",
+                masterdata: "Daftar Aset ",
+                history: "Riwayat Scan ",
                 recap: "Rekap Aset & Ruangan",
                 settings: "Pengaturan"
             };
@@ -1405,7 +1421,7 @@
             safeSetText('cardScannedPct', `${scannedPct}%`);
             safeSetText('cardPendingAsset', pending);
             safeSetText('cardPendingPct', `${pendingPct}%`);
-            safeSetText('labelFilterDesc', branchVal === 'ALL' ? 'Master Data Internal (Table1)' : `Cabang: ${branchVal}`);
+            safeSetText('labelFilterDesc', branchVal === 'ALL' ? 'Master Data Internal ' : `Cabang: ${branchVal}`);
         }
 
         // --- TABLE 1 RENDERING ---
@@ -1951,7 +1967,7 @@
         function requestClearHistory() {
             askConfirm(
                 'Hapus Riwayat Stock Opname',
-                'Apakah Anda yakin ingin membersihkan seluruh log riwayat pemindaian (Table2)?',
+                'Apakah Anda yakin ingin membersihkan seluruh log riwayat pemindaian ?',
                 () => {
                     historyLogs = [];
                     renderHistoryTable();
