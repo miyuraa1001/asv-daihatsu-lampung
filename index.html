@@ -2241,9 +2241,27 @@
             );
         }
 
+        // Cek dan ambil URL dari environment server Vercel secara otomatis jika belum ada di localStorage
+        function loadServerEnvironmentConfig() {
+            if (!googleSheetsWebhookUrl) {
+                fetch('/api/config') // atau endpoint serverless Vercel kamu
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.gasUrl) {
+                            googleSheetsWebhookUrl = data.gasUrl;
+                            console.log("URL Web App dimuat otomatis dari Environment Vercel.");
+                        }
+                    })
+                    .catch(err => {
+                        console.log("Menggunakan konfigurasi manual dari browser.");
+                    });
+            }
+        }
+
         // --- INITIALIZATION ---
         window.onload = function () {
             fetchDataFromBackend();
+            loadServerEnvironmentConfig(); // <-- Tambahkan ini
 
             renderKPIs();
             renderTable();
