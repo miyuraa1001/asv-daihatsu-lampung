@@ -911,20 +911,32 @@
 
         // --- BACKEND DATABASE INTEGRATION ---
         function fetchDataFromBackend() {
-            // 1. Tarik Master Aset (Table 1)
+            showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
+        
             fetch(`${PROXY_API_URL}?action=getAssets`)
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === "success" && Array.isArray(res.data)) {
                         assets = res.data;
+                        
+                        // Panggil di sini agar data sudah siap
+                        populateRoomFilterDropdown(); 
+                        
                         renderKPIs();
                         renderTable();
+                        renderHistoryTable();
                         renderRecapView();
+                        showToast('Sukses', 'Data master berhasil dimuat dari server.', 'success');
+                    } else {
+                        showToast('Informasi', 'Menggunakan data lokal / server kosong.', 'info');
                     }
                 })
-                .catch(err => console.error("Error getAssets:", err));
+                .catch(err => {
+                    console.error("Backend Error:", err);
+                    showToast('Koneksi Server', 'Gagal terhubung ke backend API.', 'warning');
+                });
 
-            // 2. Tarik Riwayat Log (Table 2) agar tidak hilang saat refresh
+            // Tarik juga riwayat log jika ada
             fetch(`${PROXY_API_URL}?action=getLogs`)
                 .then(res => res.json())
                 .then(res => {
@@ -2285,9 +2297,7 @@
         // --- INITIALIZATION ---
         window.onload = function () {
             fetchDataFromBackend();
-            assets = res.data;
-            populateRoomFilterDropdown(); // <-- Tambahkan baris ini
-            loadServerEnvironmentConfig(); // <-- Tambahkan ini
+            loadServerEnvironmentConfig(); 
             
             renderKPIs();
             renderTable();
