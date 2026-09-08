@@ -917,8 +917,7 @@
 
         // --- BACKEND DATABASE INTEGRATION ---
         function fetchDataFromBackend() {
-            showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
-        
+            // 1. Tarik Master Aset (Table 1)
             fetch(`${PROXY_API_URL}?action=getAssets`)
                 .then(res => res.json())
                 .then(res => {
@@ -926,17 +925,23 @@
                         assets = res.data;
                         renderKPIs();
                         renderTable();
-                        renderHistoryTable();
                         renderRecapView();
-                        showToast('Sukses', 'Data master berhasil dimuat dari server.', 'success');
-                    } else {
-                        showToast('Informasi', 'Menggunakan data lokal / server kosong.', 'info');
                     }
                 })
-                .catch(err => {
-                    console.error("Backend Error:", err);
-                    showToast('Koneksi Server', 'Gagal terhubung ke backend API. Pastikan endpoint aktif.', 'warning');
-                });
+                .catch(err => console.error("Error getAssets:", err));
+
+            // 2. Tarik Riwayat Log (Table 2) agar tidak hilang saat refresh
+            fetch(`${PROXY_API_URL}?action=getLogs`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success" && Array.isArray(res.data)) {
+                        historyLogs = res.data;
+                        renderKPIs();
+                        renderHistoryTable();
+                        renderRecapView();
+                    }
+                })
+                .catch(err => console.error("Error getLogs:", err));
         }
 
         function sendLogToServer(logData) {
