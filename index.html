@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>cekaset - Astra Daihatsu Asset Management & Stock Opname</title>
+    <title>Asset Scan & Verification System (ASV) - Astra Daihatsu Asset Management</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -138,16 +138,15 @@
     <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-72 sm:w-80 bg-slate-900 text-white z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col shadow-2xl">
         <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-daihatsu-600 to-astra-700 flex items-center justify-center text-white font-black text-xl shadow-md shadow-daihatsu-600/30">
-                    C
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-daihatsu-600 to-astra-700 flex items-center justify-center text-white font-black text-base shadow-md shadow-daihatsu-600/30">
+                    ASV
                 </div>
                 <div>
-                    <div class="flex items-center space-x-0.5 font-black tracking-tight text-lg leading-none">
-                        <span class="text-white">cek</span><span class="text-daihatsu-500">aset</span>
+                    <div class="font-black tracking-tight text-sm sm:text-base leading-tight text-white">
+                        Asset Scan & Verification
                     </div>
-                    <div class="flex items-center space-x-1 font-bold tracking-wider text-[10px] text-slate-400 mt-1">
-                        <span class="text-astra-400">ASTRA</span>
-                        <span class="text-daihatsu-400">DAIHATSU</span>
+                    <div class="text-[10px] text-daihatsu-400 font-bold tracking-wider">
+                        System (ASV)
                     </div>
                 </div>
             </div>
@@ -155,7 +154,6 @@
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
-
         <nav class="flex-1 p-3 sm:p-4 space-y-1.5 overflow-y-auto">
             <div class="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Menu Utama</div>
             
@@ -211,11 +209,13 @@
                     <i class="fa-solid fa-bars text-base sm:text-lg"></i>
                 </button>
 
+                <!-- 3. Perbarui Logo di Header Navbar Utama -->
                 <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
-                    <div class="flex items-center font-black text-base sm:text-lg tracking-tight shrink-0 border-r border-slate-200 pr-2 sm:pr-3">
-                        <span class="text-slate-900">cek</span><span class="text-daihatsu-600">aset</span>
+                    <div class="flex items-center font-black text-sm sm:text-base tracking-tight shrink-0 border-r border-slate-200 pr-2 sm:pr-3">
+                        <span class="text-daihatsu-600 font-black">ASV</span>
+                        <span class="text-slate-700 text-xs ml-1 font-semibold hidden sm:inline">| System</span>
                     </div>
-
+                
                     <h1 id="headerViewTitle" class="font-bold text-slate-800 text-sm sm:text-lg leading-none truncate">
                         Stock Opname
                     </h1>
@@ -246,14 +246,16 @@
 
         <!-- Barcode Scan Input Section -->
         <section class="bg-gradient-to-r from-slate-900 via-astra-800 to-daihatsu-900 text-white rounded-2xl p-4 sm:p-6 shadow-xl border border-slate-800">
-            <div class="max-w-3xl mx-auto space-y-3 sm:space-y-4">
-                <div class="text-left flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                    <div>
-                        <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-900/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/30">
-                            <i class="fa-solid fa-barcode text-[10px]"></i> cekaset Barcode Scanner
-                        </span>
-                        <h2 class="text-lg sm:text-2xl font-black text-white mt-1">Pemindaian Barcode Aset</h2>
-                    </div>
+            <div class="text-left flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <div>
+                    <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-900/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/30">
+                        <i class="fa-solid fa-shield-halved text-[10px]"></i> Asset Scan & Verification System (ASV)
+                    </span>
+                    <h2 class="text-lg sm:text-2xl font-black text-white mt-1">Pemindaian & Verifikasi Aset</h2>
+                    <p class="text-xs text-slate-300 mt-1 max-w-xl">
+                        Aplikasi digital untuk melakukan pemindaian barcode, verifikasi keberadaan dan kondisi aset, serta pencatatan data aset secara terintegrasi.
+                    </p>
+                </div>
                     
                     <!-- Auto-Save Toggle Mode -->
                     <div class="flex items-center space-x-2 bg-slate-950/60 p-2 rounded-xl border border-slate-700/60">
