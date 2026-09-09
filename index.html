@@ -575,7 +575,7 @@
     </main>
 
     <!-- Mobile Bottom Navigation Bar -->
-    <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-lg">
+    <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-3 pt-2 pb-5 flex items-center justify-around shadow-lg">
         <button onclick="switchView('dashboard')" id="mobileNavDashboard" class="flex flex-col items-center justify-center py-1 px-2 text-daihatsu-600 font-bold transition">
             <i class="fa-solid fa-gauge-high text-base"></i>
             <span class="text-[10px] mt-0.5">Opname</span>
@@ -586,10 +586,12 @@
             <span class="text-[10px] mt-0.5">Aset</span>
         </button>
 
-        <!-- Ubah onclick tombol kamera bawah menjadi openScanMethodModal() -->
-        <button onclick="openScanMethodModal()" class="absolute -top-5 left-1/2 transform -translate-x-1/2 w-14 h-14 rounded-full bg-gradient-to-tr from-daihatsu-700 via-daihatsu-600 to-astra-700 text-white flex items-center justify-center shadow-lg shadow-daihatsu-600/40 border-4 border-white active:scale-95 transition-all">
-            <i class="fa-solid fa-camera text-xl"></i>
-        </button>
+        <!-- Tombol Kamera Mengambang yang Presisi di Tengah -->
+        <div class="relative -top-6">
+            <button onclick="openScanMethodModal()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-daihatsu-700 via-daihatsu-600 to-astra-700 text-white flex items-center justify-center shadow-lg shadow-daihatsu-600/40 border-4 border-white active:scale-95 transition-all">
+                <i class="fa-solid fa-camera text-xl"></i>
+            </button>
+        </div>
 
         <button onclick="switchView('history')" id="mobileNavHistory" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-clock-rotate-left text-base"></i>
@@ -874,8 +876,12 @@
 
             <!-- TOMBOL AKSI DI DALAM MODAL KAMERA -->
             <div class="bg-slate-50 p-3 border-t border-slate-200 flex items-center gap-2">
-                <button onclick="closeCameraModal()" class="w-1/2 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
-                    Tutup Kamera
+                <button onclick="closeCameraModal()" class="w-1/3 px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+                    Tutup
+                </button>
+                <!-- TOMBOL SCAN ULANG (MUNCUL JIKA INGIN MENGULANG) -->
+                <button id="btnRescanCamera" onclick="resetActiveScanner()" class="hidden w-1/3 px-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition items-center justify-center gap-1">
+                    <i class="fa-solid fa-rotate-right"></i> Scan Ulang
                 </button>
                 <button id="btnProcessCameraPreview" onclick="processScanFromCameraModal()" disabled class="w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
                     <i class="fa-solid fa-paper-plane"></i>
@@ -918,8 +924,8 @@
                         <i class="fa-solid fa-file-arrow-up"></i>
                     </div>
                     <div class="ml-3 min-w-0 flex-1">
-                        <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Foto / Unggah Barcode</p>
-                        <p class="text-[10px] text-slate-500">Ambil foto stiker barcode pakai kamera HP atau galeri.</p>
+                        <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Scan Kamera Headphone</p>
+                        <p class="text-[10px] text-slate-500">Ambil foto stiker barcode pakai kamera HP.</p>
                     </div>
                     <!-- Input file tersembunyi khusus baca gambar barcode -->
                     <input type="file" accept="image/*" capture="environment" onchange="handleImageBarcodeUpload(event)" class="hidden">
@@ -2001,42 +2007,52 @@
                 html5QrCodeScanner = new Html5Qrcode("cameraReader");
                 const config = { fps: 15, qrbox: { width: 250, height: 120 } };
         
-                const qrCodeSuccessCallback = async (decodedText) => {
-                    // Jika sudah tertangkap satu kali, abaikan scan berikutnya agar tidak berubah-ubah
-                    if (isBarcodeDetected) return;
-
-                    let rawText = decodedText.trim();
-                    if (rawText.length < 8) return; 
-
-                    isBarcodeDetected = true; // Kunci scanner
-                    playBeepSound('success');
-                    scannedRawBarcode = rawText;
-
-                    // Hentikan/pause kamera agar tidak memindai lagi
-                    try {
-                        if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
-                            await html5QrCodeScanner.pause(true); // Pause tampilan kamera
-                        }
-                    } catch (e) {
-                        try { await html5QrCodeScanner.stop(); } catch(err){}
-                    }
-
-                    // Ubah badge status menjadi Berhasil Terdeteksi & matikan laser
+                // Fungsi untuk mengulang scan jika dirasa keliru atau belum pas
+                async function resetActiveScanner() {
+                    isBarcodeDetected = false;
+                    scannedPreviewAsset = null;
+                    scannedRawBarcode = "";
+        
+                    safeSetText('previewScanCode', '-');
+                    const contentBox = document.getElementById('previewAssetContent');
+                    if (contentBox) contentBox.innerHTML = 'Melanjutkan pemindaian... Arahkan kamera ke barcode.';
+        
                     const badgeText = document.getElementById('scannerStatusText');
                     const badgeDot = document.getElementById('scannerStatusDot');
                     const laser = document.getElementById('laserLine');
-                    if (badgeText) badgeText.innerText = "Barcode Berhasil Dikunci!";
-                    if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500";
-                    if (laser) laser.style.display = "none";
-
-                    const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) inputEl.value = rawText;
-
+                    if (badgeText) badgeText.innerText = "Kamera Standby - Arahkan ke Barcode";
+                    if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    if (laser) laser.style.display = "block";
+        
+                    const btnRescan = document.getElementById('btnRescanCamera');
+                    const actionBtn = document.getElementById('btnProcessCameraPreview');
+                    if (btnRescan) btnRescan.classList.add('hidden');
+                    if (actionBtn) {
+                        actionBtn.disabled = true;
+                        actionBtn.className = "w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed";
+                    }
+        
+                    // Resume kamera agar jalan lagi
+                    if (html5QrCodeScanner) {
+                        try {
+                            await html5QrCodeScanner.resume();
+                        } catch (e) {}
+                    }
+                }
+        
+                // Di dalam initCameraStream, bagian qrCodeSuccessCallback diubah menjadi:
+                const qrCodeSuccessCallback = async (decodedText) => {
+                    if (isBarcodeDetected) return;
+        
+                    let rawText = decodedText.trim();
+                    if (rawText.length < 8) return; 
+        
                     let cleanedText = rawText.replace(/[-_]/g, " ");
                     let parts = cleanedText.split(/\s+/);
                     let scannedId = parts[0].trim().toLowerCase();
                     let scannedSub = (parts[1] || "0").trim().toLowerCase();
-
+        
+                    // Cek apakah aset ADA DI DATABASE MASTER
                     let foundAsset = assets.find(a => {
                         let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                         let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -2045,40 +2061,53 @@
                         let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                         return dbId === scannedId;
                     });
-
-                    scannedPreviewAsset = foundAsset || {
-                        id: scannedId,
-                        subNumber: scannedSub,
-                        cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
-                        deskripsi: `TEMUAN_ASET_${scannedId}`,
-                        capitalizedOn: "-",
-                        lokasi: "TEMUAN_OPNAME"
-                    };
-
+        
+                    // JIKA ASET TIDAK DITEMUKAN DI DATABASE, JANGAN BERHENTI SCAN (biar tidak salah kunci)
+                    if (!foundAsset) {
+                        playBeepSound('error');
+                        showToast('Tidak Terdaftar', `Barcode ${scannedId} tidak ditemukan di database. Silakan scan ulang.`, 'warning');
+                        return; // Keluar dari fungsi agar kamera tetap lanjut menscan barcode lain
+                    }
+        
+                    // JIKA ASET DITEMUKAN, BARU KUNCI KAMERA DAN BERHENTI MENSCAN
+                    isBarcodeDetected = true; 
+                    playBeepSound('success');
+                    scannedRawBarcode = rawText;
+        
+                    try {
+                        if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
+                            await html5QrCodeScanner.pause(true); 
+                        }
+                    } catch (e) {}
+        
+                    const badgeText = document.getElementById('scannerStatusText');
+                    const badgeDot = document.getElementById('scannerStatusDot');
+                    const laser = document.getElementById('laserLine');
+                    if (badgeText) badgeText.innerText = "Aset Ditemukan & Dikunci!";
+                    if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                    if (laser) laser.style.display = "none";
+        
+                    const inputEl = document.getElementById('mainBarcodeInput');
+                    if (inputEl) inputEl.value = rawText;
+        
+                    scannedPreviewAsset = foundAsset;
                     safeSetText('previewScanCode', rawText);
+        
                     const contentBox = document.getElementById('previewAssetContent');
                     const actionBtn = document.getElementById('btnProcessCameraPreview');
-
+                    const btnRescan = document.getElementById('btnRescanCamera');
+        
                     if (contentBox) {
-                        if (foundAsset) {
-                            contentBox.innerHTML = `
-                                <div class="text-emerald-700 font-bold flex items-center gap-1 mb-0.5">
-                                    <i class="fa-solid fa-circle-check"></i> Aset Ditemukan di Database!
-                                </div>
-                                <p class="font-bold text-slate-900">${foundAsset.deskripsi}</p>
-                                <p class="text-[11px] text-slate-500 font-mono">Cabang: ${foundAsset.cabang} | Ruangan: ${foundAsset.lokasi}</p>
-                            `;
-                        } else {
-                            contentBox.innerHTML = `
-                                <div class="text-amber-700 font-bold flex items-center gap-1 mb-0.5">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> Aset Tidak Terdaftar (Temuan Baru)
-                                </div>
-                                <p class="font-bold text-slate-900">ID: ${scannedId} (Sub: ${scannedSub})</p>
-                                <p class="text-[11px] text-slate-500">Akan dicatat sebagai aset temuan baru.</p>
-                            `;
-                        }
+                        contentBox.innerHTML = `
+                            <div class="text-emerald-700 font-bold flex items-center gap-1 mb-0.5">
+                                <i class="fa-solid fa-circle-check"></i> Aset Ditemukan di Database!
+                            </div>
+                            <p class="font-bold text-slate-900">${foundAsset.deskripsi}</p>
+                            <p class="text-[11px] text-slate-500 font-mono">Cabang: ${foundAsset.cabang} | Ruangan: ${foundAsset.lokasi}</p>
+                        `;
                     }
-
+        
+                    if (btnRescan) btnRescan.classList.remove('flex'); // Munculkan tombol scan ulang
                     if (actionBtn) {
                         actionBtn.disabled = false;
                         actionBtn.className = "w-1/2 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer animate-bounce";
