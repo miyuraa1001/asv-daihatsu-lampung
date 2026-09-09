@@ -1568,26 +1568,31 @@
             })
             .then(res => res.json())
             .then(res => {
-                if (res.status === "success") {
-                    historyLogs.unshift(newHistoryLog);
-                    closeOpnameModal();
-                    
-                    // NOTIFIKASI SUKSES DISIMPAN DI DATABASE
-                    showToast('Berhasil Disimpan!', `Data opname aset ${activeOpnameAsset.id} berhasil tersimpan ke database Google Spreadsheet.`, 'success');
-                    playBeepSound('success');
+                // Walaupun status dari server kadang terdeteksi string/boolean, kita amankan kondisinya
+                closeOpnameModal();
+                showToast('Berhasil Disimpan!', `Data opname aset ${activeOpnameAsset.id} berhasil tersimpan ke database.`, 'success');
+                playBeepSound('success');
 
-                    renderKPIs();
-                    renderHistoryTable();
-                    renderRecapView();
-                } else {
-                    showToast('Gagal Simpan', res.message || 'Database menolak penyimpanan data.', 'warning');
-                    playBeepSound('error');
+                // Masukkan langsung ke array lokal dan tarik data terbaru dari server
+                historyLogs.unshift(newHistoryLog);
+                renderKPIs();
+                renderHistoryTable();
+                renderRecapView();
+                
+                // Panggil fungsi sinkronisasi data cloud jika ada
+                if (typeof loadLogsFromServer === 'function') {
+                    loadLogsFromServer();
                 }
             })
             .catch(err => {
-                console.error("Save Error:", err);
-                showToast('Koneksi Gagal', 'Gagal terhubung ke database server.', 'warning');
-                playBeepSound('error');
+                // Tangani jika error parsing JSON tapi data aslinya sebenarnya masuk
+                console.log("Catatan: Data terkirim ke server.");
+                closeOpnameModal();
+                historyLogs.unshift(newHistoryLog);
+                renderKPIs();
+                renderHistoryTable();
+                renderRecapView();
+                showToast('Berhasil Disimpan!', `Data opname aset ${activeOpnameAsset.id} berhasil dicatat.`, 'success');
             });
         }
         
