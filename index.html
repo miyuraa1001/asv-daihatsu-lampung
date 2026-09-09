@@ -878,16 +878,20 @@
                 </div>
             </div>
 
-            <!-- TOMBOL AKSI DI DALAM MODAL KAMERA -->
-            <div class="bg-slate-50 p-3 border-t border-slate-200 flex items-center gap-2">
-                <button onclick="closeCameraModal()" class="w-1/3 px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+            <!-- TOMBOL AKSI DI DALAM MODAL KAMERA (DIPERBAIKI AGAR PRESISI) -->
+            <div class="bg-slate-50 p-3.5 border-t border-slate-200 flex items-center gap-2.5">
+                <!-- Tombol Tutup -->
+                <button onclick="closeCameraModal()" class="w-1/3 px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center">
                     Tutup
                 </button>
-                <!-- TOMBOL SCAN ULANG (MUNCUL JIKA INGIN MENGULANG) -->
+
+                <!-- Tombol Scan Ulang (Akan muncul otomatis jika barcode sudah dikunci) -->
                 <button id="btnRescanCamera" onclick="resetActiveScanner()" class="hidden w-1/3 px-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-xs transition items-center justify-center gap-1">
-                    <i class="fa-solid fa-rotate-right"></i> Scan Ulang
+                    <i class="fa-solid fa-rotate-right"></i> Ulang
                 </button>
-                <button id="btnProcessCameraPreview" onclick="processScanFromCameraModal()" disabled class="w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+
+                <!-- Tombol Proses & Verifikasi (Proporsional & Presisi) -->
+                <button id="btnProcessCameraPreview" onclick="processScanFromCameraModal()" disabled class="flex-1 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Proses & Verifikasi</span>
                 </button>
@@ -1497,20 +1501,22 @@
             
             html5QrCode.scanFile(file, true)
                 .then(decodedText => {
+                    html5QrCode.clear();
                     let rawText = decodedText.trim();
-                    playBeepSound('success');
+                    if (rawText.length < 8) {
+                        showToast('Tidak Valid', 'Barcode terlalu pendek atau tidak terbaca.', 'warning');
+                        return;
+                    }
 
-                    // Masukkan ke input utama
+                    playBeepSound('success');
                     const inputEl = document.getElementById('mainBarcodeInput');
                     if (inputEl) inputEl.value = rawText;
 
-                    // Pecah string ID dan Sub-Number
                     let cleanedText = rawText.replace(/[-_]/g, " ");
                     let parts = cleanedText.split(/\s+/);
                     let scannedId = parts[0].trim().toLowerCase();
                     let scannedSub = (parts[1] || "0").trim().toLowerCase();
 
-                    // Cari di database Master Aset (Table 1)
                     let foundAsset = assets.find(a => {
                         let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                         let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -1520,37 +1526,35 @@
                         return dbId === scannedId;
                     });
 
-                    let targetAsset = foundAsset || {
-                        id: scannedId,
-                        subNumber: scannedSub,
-                        cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
-                        deskripsi: `TEMUAN_ASET_${scannedId}`,
-                        capitalizedOn: "-",
-                        lokasi: "TEMUAN_OPNAME"
-                    };
+                    // JIKA TIDAK DITEMUKAN DI MASTER DATA
+                    if (!foundAsset) {
+                        playBeepSound('error');
+                        showToast('Tidak Terdaftar', `Nomor Aset "${rawText}" tidak ada di Master Data.`, 'warning');
+                        return;
+                    }
 
-                    // Cek duplikat harian
+                    // CEK DUPLIKAT HARIAN
                     const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
                     const alreadyScannedToday = historyLogs.some(h => {
                         let hId = String(h.assetId || "").trim().toLowerCase();
                         let hSub = String(h.subNumber || "0").trim().toLowerCase();
                         let hDate = String(h.tanggalScan || "").trim();
-                        
-                        return hId === String(targetAsset.id).trim().toLowerCase() && 
-                               hSub === String(targetAsset.subNumber || "0").trim().toLowerCase() && 
+                        return hId === String(foundAsset.id).trim().toLowerCase() && 
+                               hSub === String(foundAsset.subNumber || "0").trim().toLowerCase() && 
                                hDate === todayStr;
                     });
 
                     if (alreadyScannedToday) {
                         playBeepSound('error');
-                        showToast('Aset Sudah Terscan', `Aset ${targetAsset.id} sudah pernah dipindai hari ini.`, 'warning');
+                        showToast('Aset Sudah Terscan', `Aset ${foundAsset.id} sudah pernah dipindai hari ini.`, 'warning');
                         return;
                     }
 
-                    // Langsung buka modal form verifikasi opname
-                    openOpnameModal(targetAsset, 'Scan');
+                    // WAJIB: Buka modal form verifikasi dulu sebelum disimpan ke database
+                    openOpnameModal(foundAsset, 'Scan');
                 })
                 .catch(err => {
+                    html5QrCode.clear();
                     playBeepSound('error');
                     showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas, fokus, dan pas di dalam bidikan.', 'warning');
                 });
@@ -1781,6 +1785,24 @@
             renderTable();
         }
 
+        // Fungsi pembantu untuk memastikan tanggal selalu berformat DD.MM.YYYY
+        function formatDisplayDate(dateInput) {
+            if (!dateInput) return "-";
+            let str = String(dateInput).trim();
+            
+            // Jika dari Google Sheets berupa string panjang GMT / ISO Date
+            if (str.includes("GMT") || str.includes("T") || str.length > 15) {
+                let d = new Date(str);
+                if (!isNaN(d.getTime())) {
+                    let day = String(d.getDate()).padStart(2, '0');
+                    let month = String(d.getMonth() + 1).padStart(2, '0');
+                    let year = d.getFullYear();
+                    return `${day}.${month}.${year}`;
+                }
+            }
+            return str.replace(/\//g, '.');
+        }
+
         // --- TABLE 2 HISTORY RENDERING ---
         function renderHistoryTable() {
             const searchVal = safeGetValue('historySearchInput').toLowerCase().trim();
@@ -1808,7 +1830,7 @@
             if (filtered.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="13" class="text-center py-8 text-slate-400">
+                        <td colspan="14" class="text-center py-8 text-slate-400">
                             <i class="fa-solid fa-clock-rotate-left text-2xl mb-1 block"></i>
                             Belum ada riwayat stock opname tercatat.
                         </td>
@@ -1843,12 +1865,11 @@
                         `;
                     }
 
-                    // Di dalam perulangan renderHistoryTable():
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-xs";
                     tr.innerHTML = `
                         <td class="py-2.5 px-3 text-center font-mono text-slate-400 text-[11px] font-bold">${index + 1}</td>
-                        <td class="py-2.5 px-3 font-mono text-slate-600 whitespace-nowrap">${item.tanggalScan}</td>
+                        <td class="py-2.5 px-3 font-mono text-slate-600 whitespace-nowrap">${formatDisplayDate(item.tanggalScan)}</td>
                         <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">${item.assetId} ${item.subNumber || '0'}</td>
                         <td class="py-2.5 px-3 font-semibold text-slate-700">${item.cabang}</td>
                         <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
@@ -2570,6 +2591,28 @@
                     renderKPIs();
                     renderRecapView();
                     showToast('Berhasil Dihapus', `Log aset ${assetId} telah dihapus.`, 'success');
+                }
+            );
+        }
+
+        function requestClearAllHistory() {
+            askConfirm(
+                'Hapus Semua Riwayat Stock Opname',
+                'Apakah Anda yakin ingin membersihkan seluruh log riwayat pemindaian? Data di Google Spreadsheet juga akan ikut terhapus permanen.',
+                () => {
+                    historyLogs = [];
+                    renderHistoryTable();
+                    renderKPIs();
+                    renderRecapView();
+
+                    // Kirim perintah hapus semua ke Google Sheets via Proxy
+                    fetch(PROXY_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: "clearAllLogs" })
+                    }).catch(err => console.log("Gagal sync clear ke server:", err));
+
+                    showToast('Log Dibersihkan', 'Seluruh riwayat pemindaian telah dikosongkan.', 'info');
                 }
             );
         }
