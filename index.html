@@ -1044,27 +1044,37 @@
         function deleteSingleLog(assetId, subNumber) {
             askConfirm(
                 'Hapus Log Riwayat',
-                `Apakah Anda yakin ingin menghapus log untuk Aset ID ${assetId}? Data juga akan terhapus permanen dari Google Spreadsheet.`,
+                `Apakah Anda yakin ingin menghapus log untuk Aset ID ${assetId}? Data akan dihapus permanen dari Google Spreadsheet.`,
                 () => {
-                    historyLogs = historyLogs.filter(h => !(String(h.assetId) === String(assetId) && String(h.subNumber || '0') === String(subNumber || '0')));
+                    showToast('Menghapus...', 'Menghapus data dari database...', 'info');
 
-                    if (googleSheetsWebhookUrl) {
-                        fetch(googleSheetsWebhookUrl, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                action: "deleteLog",
-                                assetId: assetId,
-                                subNumber: subNumber
-                            })
-                        }).catch(err => console.log("Gagal sync hapus ke Sheets:", err));
-                    }
-
-                    renderHistoryTable();
-                    renderKPIs();
-                    renderRecapView();
-                    showToast('Berhasil Dihapus', `Log aset ${assetId} telah dihapus dari sistem dan database.`, 'success');
+                    fetch(PROXY_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: "deleteLog",
+                            assetId: assetId,
+                            subNumber: subNumber
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            historyLogs = historyLogs.filter(h => !(String(h.assetId) === String(assetId) && String(h.subNumber || '0') === String(subNumber || '0')));
+                            renderHistoryTable();
+                            renderKPIs();
+                            renderRecapView();
+                            
+                            // NOTIFIKASI SUKSES DATA DIHAPUS
+                            showToast('Berhasil Dihapus!', `Log aset ${assetId} telah berhasil dihapus dari database Google Spreadsheet.`, 'success');
+                        } else {
+                            showToast('Gagal Hapus', res.message || 'Server gagal menghapus data.', 'warning');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Delete Error:", err);
+                        showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server untuk menghapus data.', 'warning');
+                    });
                 }
             );
         }
@@ -1072,27 +1082,37 @@
         function requestClearAllHistory() {
             askConfirm(
                 'Hapus Semua Riwayat Stock Opname',
-                'Apakah Anda yakin ingin membersihkan seluruh log riwayat? Data di Google Spreadsheet juga akan ikut terhapus permanen.',
+                'Apakah Anda yakin ingin membersihkan seluruh log riwayat? Data di Google Spreadsheet akan ikut terhapus permanen.',
                 () => {
-                    historyLogs = [];
-                    renderHistoryTable();
-                    renderKPIs();
-                    renderRecapView();
+                    showToast('Membersihkan...', 'Mengosongkan seluruh data dari database...', 'info');
 
-                    if (googleSheetsWebhookUrl) {
-                        fetch(googleSheetsWebhookUrl, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ action: "clearAllLogs" })
-                        }).catch(err => console.log("Gagal sync clear ke Sheets:", err));
-                    }
-
-                    showToast('Log Dibersihkan', 'Seluruh riwayat pemindaian telah dikosongkan.', 'info');
+                    fetch(PROXY_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: "clearAllLogs" })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            historyLogs = [];
+                            renderHistoryTable();
+                            renderKPIs();
+                            renderRecapView();
+                            
+                            // NOTIFIKASI SUKSES SEMUA DATA DIHAPUS
+                            showToast('Database Bersih!', 'Seluruh riwayat pemindaian telah berhasil dikosongkan dari Google Spreadsheet.', 'success');
+                        } else {
+                            showToast('Gagal', res.message || 'Gagal membersihkan log.', 'warning');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Clear All Error:", err);
+                        showToast('Koneksi Gagal', 'Gagal terhubung ke server.', 'warning');
+                    });
                 }
             );
         }
-
+        
         // --- AUDIO FEEDBACK ---
         function playBeepSound(type = 'success') {
             try {
@@ -1490,7 +1510,6 @@
         }
 
         function saveOpnameVerification() {
-            // Pengaman: Jika activeOpnameAsset null, ambil otomatis dari input utama
             if (!activeOpnameAsset) {
                 const inputVal = safeGetValue('mainBarcodeInput').trim();
                 let cleanedText = inputVal.replace(/[-_]/g, " ");
@@ -1539,15 +1558,37 @@
                 keterangan: keterangan
             };
 
-            historyLogs.unshift(newHistoryLog);
-            sendLogToServer(newHistoryLog);
+            showToast('Menyimpan...', 'Mengirim data ke database Google Sheets...', 'info');
 
-            closeOpnameModal();
-            showToast('Opname Tersimpan', `Hasil verifikasi ${activeOpnameAsset.id} berhasil dicatat dan masuk ke database.`, 'success');
+            // Kirim ke server lewat Proxy Vercel agar mendapat respons pasti
+            fetch(PROXY_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: "addLog", data: newHistoryLog })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    historyLogs.unshift(newHistoryLog);
+                    closeOpnameModal();
+                    
+                    // NOTIFIKASI SUKSES DISIMPAN DI DATABASE
+                    showToast('Berhasil Disimpan!', `Data opname aset ${activeOpnameAsset.id} berhasil tersimpan ke database Google Spreadsheet.`, 'success');
+                    playBeepSound('success');
 
-            renderKPIs();
-            renderHistoryTable();
-            renderRecapView();
+                    renderKPIs();
+                    renderHistoryTable();
+                    renderRecapView();
+                } else {
+                    showToast('Gagal Simpan', res.message || 'Database menolak penyimpanan data.', 'warning');
+                    playBeepSound('error');
+                }
+            })
+            .catch(err => {
+                console.error("Save Error:", err);
+                showToast('Koneksi Gagal', 'Gagal terhubung ke database server.', 'warning');
+                playBeepSound('error');
+            });
         }
         
         function fillBarcodeInput(assetId) {
