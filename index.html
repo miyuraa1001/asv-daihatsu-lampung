@@ -542,35 +542,65 @@
         <div class="space-y-4 sm:space-y-6" id="recapBranchCards"></div>
     </main>
 
-    <!-- VIEW 5: PENGATURAN SISTEM -->
+    <!-- VIEW 5: PENGATURAN SISTEM & PROFIL -->
     <main id="settingsView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs">
-            <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-sliders text-astra-600"></i>
-                <span>Pengaturan Sistem Internal</span>
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">Konfigurasi operasional pengecekan fisik aset dan petunjuk petugas audit</p>
-
-            <div class="mt-4 sm:mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800">Integrasi Webhook Google Sheets / Excel</h3>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-astra-600"></i>
+                        <span>Pengaturan Sistem & Profil</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Konfigurasi operasional pengecekan fisik aset, akun petugas, dan sinkronisasi.</p>
+                </div>
+                <span class="text-xs bg-blue-50 text-astra-700 font-semibold px-3 py-1 rounded-full border border-blue-100 self-start sm:self-auto">Astra Daihatsu v1.2</span>
+            </div>
+    
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <!-- 1. KARTU PROFIL PETUGAS / AUDITOR (Persiapan Login di Akhir) -->
+                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between">
                     <div>
-                        <label class="block text-xs text-slate-600 mb-1 font-medium">Google Apps Script Web App URL (Opsional)</label>
-                        <input type="url" id="settingSheetsUrl" onchange="saveSheetsUrl(this.value)" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs font-mono border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-astra-500">
-                        <p class="text-[10px] text-slate-400 mt-1">Jika diisi, setiap scan barcode akan terkirim otomatis secara realtime ke database Google Sheets Anda.</p>
+                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-user-shield text-astra-600"></i>
+                            <span>Sesi Petugas Aktif</span>
+                        </h3>
+                        <div class="flex items-center gap-3.5 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
+                            <div class="w-11 h-11 rounded-full bg-astra-600 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <h4 id="profileNameDisplay" class="font-bold text-slate-800 text-sm truncate">Budi Santoso</h4>
+                                <p class="text-[11px] text-slate-500 truncate">Auditor / Internal Control</p>
+                                <span class="inline-block mt-1 text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded font-medium">Astra Daihatsu Lampung (D660)</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs text-slate-600 mb-1 font-medium">Petugas Internal Auditor</label>
-                        <input type="text" id="settingAuditorName" oninput="updateAuditorName(this.value)" value="Budi Santoso" class="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white">
+    
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
+                        <span class="text-slate-500">Status: <strong class="text-emerald-600 font-semibold">Aktif (Pra-Login)</strong></span>
+                        <button onclick="handleLogout()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Keluar / Logout</span>
+                        </button>
                     </div>
                 </div>
-
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800">Penyinkronan Data</h3>
-                    <p class="text-xs text-slate-500">Muat ulang data secara berkala dari backend server.</p>
-                    <div class="flex items-center gap-2 pt-2">
-                        <button onclick="fetchDataFromBackend()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition shadow-xs">
-                            <i class="fa-solid fa-arrows-rotate mr-1.5"></i> Tarik Data dari Server
+    
+                <!-- 2. KONTROL DATA & SINKRONISASI -->
+                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-cloud-arrow-down text-astra-600"></i>
+                            <span>Sinkronisasi Data Multi-Device</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Muat ulang data secara berkala dari database Google Spreadsheet untuk memastikan riwayat pemindaian antar perangkat selalu sinkron secara real-time.
+                        </p>
+                    </div>
+    
+                    <div class="pt-2">
+                        <button onclick="loadLogsFromServer(); showToast('Sinkronisasi', 'Memperbarui data dari Google Sheets...', 'info');" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>Tarik Data dari Server</span>
                         </button>
                     </div>
                 </div>
@@ -980,6 +1010,16 @@
         function safeGetValue(id, fallback = '') {
             const el = document.getElementById(id);
             return el ? el.value : fallback;
+        }
+
+        function handleLogout() {
+            askConfirm(
+                'Konfirmasi Keluar',
+                'Fitur autentikasi login penuh akan diaktifkan di tahap akhir. Untuk saat ini, sesi tetap terbuka.',
+                () => {
+                    showToast('Informasi', 'Sesi saat ini aktif dalam mode operasional bebas.', 'info');
+                }
+            );
         }
 
         function loadLogsFromServer() {
