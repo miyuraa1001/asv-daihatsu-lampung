@@ -1,20 +1,22 @@
 export default async function handler(req, res) {
     const targetUrl = process.env.GAS_WEB_APP_URL;
+    const secretToken = process.env.GAS_SECRET_TOKEN;
 
-    if (!targetUrl) {
-        return res.status(500).json({ status: "error", message: "Server configuration missing: GAS_WEB_APP_URL not set." });
+    if (!targetUrl || !secretToken) {
+        return res.status(500).json({ status: "error", message: "Server configuration missing." });
     }
 
     try {
         if (req.method === 'GET') {
             const action = req.query.action || '';
-            const response = await fetch(`${targetUrl}?action=${action}`);
+            const response = await fetch(`${targetUrl}?action=${action}&token=${secretToken}`);
             const data = await response.json();
             return res.status(200).json(data);
         } 
         
         else if (req.method === 'POST') {
             const payload = req.body || {};
+            payload.token = secretToken; // Sisipkan token ke body POST
 
             const response = await fetch(targetUrl, {
                 method: 'POST',
