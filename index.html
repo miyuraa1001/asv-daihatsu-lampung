@@ -966,7 +966,7 @@
         let currentPage = 1;
         const itemsPerPage = 15;
         let html5QrCodeScanner = null;
-        let isAutoSaveMode = true;
+        let isAutoSaveMode = false;
         let googleSheetsWebhookUrl = localStorage.getItem('app_sheets_url') || '';
 
         // API Backend Proxy URL (Connected via Google Apps Script or Proxy Endpoint)
@@ -986,15 +986,15 @@
         function fetchDataFromBackend() {
             showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
         
-            fetch(`${PROXY_API_URL}?action=getAssets`)
+            // Jika menggunakan Web App Google Apps Script langsung
+            const fetchUrl = googleSheetsWebhookUrl ? googleSheetsWebhookUrl + "?action=getAssets" : `${PROXY_API_URL}?action=getAssets`;
+
+            fetch(fetchUrl)
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === "success" && Array.isArray(res.data)) {
                         assets = res.data;
-                        
-                        // Panggil di sini agar data sudah siap
                         populateRoomFilterDropdown(); 
-                        
                         renderKPIs();
                         renderTable();
                         renderHistoryTable();
@@ -1009,8 +1009,9 @@
                     showToast('Koneksi Server', 'Gagal terhubung ke backend API.', 'warning');
                 });
 
-            // Tarik juga riwayat log jika ada
-            fetch(`${PROXY_API_URL}?action=getLogs`)
+            // Tarik riwayat log
+            const logsUrl = googleSheetsWebhookUrl ? googleSheetsWebhookUrl + "?action=getLogs" : `${PROXY_API_URL}?action=getLogs`;
+            fetch(logsUrl)
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === "success" && Array.isArray(res.data)) {
@@ -1024,44 +1025,144 @@
         }
 
         function sendLogToServer(logData) {
-            // 1. Jika aplikasi berjalan langsung di dalam container Google Apps Script
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                google.script.run
-                    .withSuccessHandler(res => console.log("Tersimpan ke Sheets via GAS:", res))
-                    .withFailureHandler(err => console.error("Gagal simpan ke Sheets via GAS:", err))
-                    .saveScanLog(logData);
-                return;
-            }
-
-            // 2. Jika menggunakan URL Web App Google Apps Script langsung (Deployment Web App)
-            // Masukkan URL Web App Apps Script Anda di variabel ini jika ada, atau gunakan PROXY_API_URL
+            // Kirim langsung ke Google Sheets Web App URL jika diisi di pengaturan
             if (googleSheetsWebhookUrl) {
                 fetch(googleSheetsWebhookUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // Wajib no-cors untuk Apps Script Web App eksternal
+                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(logData)
+                    body: JSON.stringify({ action: "addLog", data: logData })
                 }).then(() => {
-                    console.log("Log terkirim ke Webhook Google Sheets.");
+                    console.log("Log & Foto terkirim ke Google Sheets.");
                 }).catch(err => console.log('Sheets Webhook Error:', err));
             }
 
-            // 3. Kirim via Proxy API Vercel / Backend Endpoint
+            // Cadangan via Proxy API
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: "addLog",
-                    data: logData
+                body: JSON.stringify({ action: "addLog", data: logData })
+            }).catch(err => console.log("Proxy sync error:", err));
+        }
+
+        function deleteSingleLog(assetId, subNumber) {
+            askConfirm(
+                'Hapus Log Riwayat',
+                `Apakah Anda yakin ingin menghapus log untuk Aset ID ${assetId}? Data juga akan terhapus permanen dari Google Spreadsheet.`,
+                () => {
+                    historyLogs = historyLogs.filter(h => !(String(h.assetId) === String(assetId) && String(h.subNumber || '0') === String(subNumber || '0')));
+
+                    if (googleSheetsWebhookUrl) {
+                        fetch(googleSheetsWebhookUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: "deleteLog",
+                                assetId: assetId,
+                                subNumber: subNumber
+                            })
+                        }).catch(err => console.log("Gagal sync hapus ke Sheets:", err));
+                    }
+
+                    renderHistoryTable();
+                    renderKPIs();
+                    renderRecapView();
+                    showToast('Berhasil Dihapus', `Log aset ${assetId} telah dihapus dari sistem dan database.`, 'success');
+                }
+            );
+        }
+
+        function requestClearAllHistory() {
+            askConfirm(
+                'Hapus Semua Riwayat Stock Opname',
+                'Apakah Anda yakin ingin membersihkan seluruh log riwayat? Data di Google Spreadsheet juga akan ikut terhapus permanen.',
+                () => {
+                    historyLogs = [];
+                    renderHistoryTable();
+                    renderKPIs();
+                    renderRecapView();
+
+                    if (googleSheetsWebhookUrl) {
+                        fetch(googleSheetsWebhookUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: "clearAllLogs" })
+                        }).catch(err => console.log("Gagal sync clear ke Sheets:", err));
+                    }
+
+                    showToast('Log Dibersihkan', 'Seluruh riwayat pemindaian telah dikosongkan.', 'info');
+                }
+            );
+        }
+
+        // Fungsi scan kamera HP yang langsung mengarah ke Modal Verifikasi (bukan auto-simpan)
+        function handleNativeCameraScan(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Memindai Foto', 'Mendeteksi barcode dari foto kamera HP...', 'info');
+
+            const html5QrCode = new Html5Qrcode("cameraReader");
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    html5QrCode.clear();
+                    let rawText = decodedText.trim();
+                    if (rawText.length < 8) {
+                        showToast('Tidak Valid', 'Barcode terlalu pendek atau tidak terbaca.', 'warning');
+                        return;
+                    }
+
+                    playBeepSound('success');
+                    const inputEl = document.getElementById('mainBarcodeInput');
+                    if (inputEl) inputEl.value = rawText;
+
+                    let cleanedText = rawText.replace(/[-_]/g, " ");
+                    let parts = cleanedText.split(/\s+/);
+                    let scannedId = parts[0].trim().toLowerCase();
+                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
+
+                    let foundAsset = assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                        return dbId === scannedId && dbSub === scannedSub;
+                    }) || assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        return dbId === scannedId;
+                    });
+
+                    if (!foundAsset) {
+                        playBeepSound('error');
+                        showToast('Tidak Terdaftar', `Nomor Aset "${rawText}" tidak ada di Master Data.`, 'warning');
+                        return;
+                    }
+
+                    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+                    const alreadyScannedToday = historyLogs.some(h => {
+                        let hId = String(h.assetId || "").trim().toLowerCase();
+                        let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                        let hDate = String(h.tanggalScan || "").trim();
+                        return hId === String(foundAsset.id).trim().toLowerCase() && 
+                               hSub === String(foundAsset.subNumber || "0").trim().toLowerCase() && 
+                               hDate === todayStr;
+                    });
+
+                    if (alreadyScannedToday) {
+                        playBeepSound('error');
+                        showToast('Aset Sudah Terscan', `Aset ${foundAsset.id} sudah pernah dipindai hari ini.`, 'warning');
+                        return;
+                    }
+
+                    // Membuka Modal Verifikasi terlebih dahulu sebelum disimpan
+                    openOpnameModal(foundAsset, 'Scan');
                 })
-            })
-            .then(res => res.json())
-            .then(res => {
-                console.log("Response dari Server Database:", res);
-            })
-            .catch(err => {
-                console.log("Catatan: Data tersimpan di memori lokal, namun gagal sync ke server proxy:", err);
-            });
+                .catch(err => {
+                    html5QrCode.clear();
+                    playBeepSound('error');
+                    showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas dan fokus.', 'warning');
+                });
         }
 
         // --- AUDIO FEEDBACK ---
@@ -1488,76 +1589,6 @@
                     badge.className = "text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full";
                 }
             }
-        }
-
-        // Fungsi untuk memproses foto dari kamera bawaan HP (Alternatif)
-        function handleNativeCameraScan(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            showToast('Memindai Foto', 'Mendeteksi barcode dari foto kamera HP...', 'info');
-
-            const html5QrCode = new Html5Qrcode("cameraReader");
-            
-            html5QrCode.scanFile(file, true)
-                .then(decodedText => {
-                    html5QrCode.clear();
-                    let rawText = decodedText.trim();
-                    if (rawText.length < 8) {
-                        showToast('Tidak Valid', 'Barcode terlalu pendek atau tidak terbaca.', 'warning');
-                        return;
-                    }
-
-                    playBeepSound('success');
-                    const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) inputEl.value = rawText;
-
-                    let cleanedText = rawText.replace(/[-_]/g, " ");
-                    let parts = cleanedText.split(/\s+/);
-                    let scannedId = parts[0].trim().toLowerCase();
-                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
-
-                    let foundAsset = assets.find(a => {
-                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
-                        return dbId === scannedId && dbSub === scannedSub;
-                    }) || assets.find(a => {
-                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                        return dbId === scannedId;
-                    });
-
-                    // JIKA TIDAK DITEMUKAN DI MASTER DATA
-                    if (!foundAsset) {
-                        playBeepSound('error');
-                        showToast('Tidak Terdaftar', `Nomor Aset "${rawText}" tidak ada di Master Data.`, 'warning');
-                        return;
-                    }
-
-                    // CEK DUPLIKAT HARIAN
-                    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-                    const alreadyScannedToday = historyLogs.some(h => {
-                        let hId = String(h.assetId || "").trim().toLowerCase();
-                        let hSub = String(h.subNumber || "0").trim().toLowerCase();
-                        let hDate = String(h.tanggalScan || "").trim();
-                        return hId === String(foundAsset.id).trim().toLowerCase() && 
-                               hSub === String(foundAsset.subNumber || "0").trim().toLowerCase() && 
-                               hDate === todayStr;
-                    });
-
-                    if (alreadyScannedToday) {
-                        playBeepSound('error');
-                        showToast('Aset Sudah Terscan', `Aset ${foundAsset.id} sudah pernah dipindai hari ini.`, 'warning');
-                        return;
-                    }
-
-                    // WAJIB: Buka modal form verifikasi dulu sebelum disimpan ke database
-                    openOpnameModal(foundAsset, 'Scan');
-                })
-                .catch(err => {
-                    html5QrCode.clear();
-                    playBeepSound('error');
-                    showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas, fokus, dan pas di dalam bidikan.', 'warning');
-                });
         }
 
         function handleEvidencePhoto(event) {
@@ -2565,56 +2596,6 @@
                     playBeepSound('error');
                     showToast('Gagal Membaca', 'Barcode tidak ditemukan pada foto yang diambil. Coba ulangi.', 'error');
                 });
-        }
-
-        function deleteSingleLog(assetId, subNumber) {
-            askConfirm(
-                'Hapus Log Riwayat',
-                `Apakah Anda yakin ingin menghapus log untuk Aset ID ${assetId} ini? Data juga akan terhapus dari database Spreadsheet.`,
-                () => {
-                    // 1. Hapus dari array lokal historyLogs
-                    historyLogs = historyLogs.filter(h => !(String(h.assetId) === String(assetId) && String(h.subNumber || '0') === String(subNumber || '0')));
-        
-                    // 2. Kirim permintaan hapus ke Server/Google Sheets via Proxy
-                    fetch(PROXY_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: "deleteLog",
-                            assetId: assetId,
-                            subNumber: subNumber
-                        })
-                    }).catch(err => console.log("Gagal sync hapus ke server:", err));
-        
-                    // 3. Render ulang tampilan
-                    renderHistoryTable();
-                    renderKPIs();
-                    renderRecapView();
-                    showToast('Berhasil Dihapus', `Log aset ${assetId} telah dihapus.`, 'success');
-                }
-            );
-        }
-
-        function requestClearAllHistory() {
-            askConfirm(
-                'Hapus Semua Riwayat Stock Opname',
-                'Apakah Anda yakin ingin membersihkan seluruh log riwayat pemindaian? Data di Google Spreadsheet juga akan ikut terhapus permanen.',
-                () => {
-                    historyLogs = [];
-                    renderHistoryTable();
-                    renderKPIs();
-                    renderRecapView();
-
-                    // Kirim perintah hapus semua ke Google Sheets via Proxy
-                    fetch(PROXY_API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: "clearAllLogs" })
-                    }).catch(err => console.log("Gagal sync clear ke server:", err));
-
-                    showToast('Log Dibersihkan', 'Seluruh riwayat pemindaian telah dikosongkan.', 'info');
-                }
-            );
         }
 
         // Cek dan ambil URL dari environment server Vercel secara otomatis jika belum ada di localStorage
