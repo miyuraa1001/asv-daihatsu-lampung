@@ -1161,30 +1161,13 @@
                 return dbId === scannedId;
             });
 
-            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-            const alreadyScannedToday = historyLogs.some(h => {
-                let hId = String(h.assetId || "").trim().toLowerCase();
-                let hSub = String(h.subNumber || "0").trim().toLowerCase();
-                let hDate = String(h.tanggalScan || "").trim();
-                
-                let targetId = foundAsset ? String(foundAsset.id).trim().toLowerCase() : scannedId;
-                let targetSub = foundAsset ? String(foundAsset.subNumber || "0").trim().toLowerCase() : scannedSub;
-
-                return hId === targetId && hSub === targetSub && hDate === todayStr;
-            });
-
-            if (alreadyScannedToday) {
-                playBeepSound('error');
-                showToast('Aset Sudah Terscan', `Aset ${foundAsset ? foundAsset.id : scannedId} sudah pernah dipindai hari ini.`, 'warning');
-                return;
-            }
-
             if (!foundAsset) {
                 playBeepSound('error');
                 showToast('Aset Tidak Ditemukan', `Nomor Barcode "${barcodeText}" tidak terdaftar di Master Aset.`, 'warning');
                 return;
             }
 
+            // Langsung buka modal verifikasi dan bawa data aset yang ditemukan
             openOpnameModal(foundAsset, method);
         }
 
