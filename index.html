@@ -1490,7 +1490,28 @@
         }
 
         function saveOpnameVerification() {
-            if (!activeOpnameAsset) return;
+            // Pengaman: Jika activeOpnameAsset null, ambil otomatis dari input utama
+            if (!activeOpnameAsset) {
+                const inputVal = safeGetValue('mainBarcodeInput').trim();
+                let cleanedText = inputVal.replace(/[-_]/g, " ");
+                let parts = cleanedText.split(/\s+/);
+                let scannedId = parts[0].trim().toLowerCase();
+                let scannedSub = (parts[1] || "0").trim().toLowerCase();
+
+                activeOpnameAsset = assets.find(a => {
+                    let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                    let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                    return dbId === scannedId && dbSub === scannedSub;
+                }) || assets.find(a => {
+                    let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                    return dbId === scannedId;
+                });
+
+                if (!activeOpnameAsset) {
+                    showToast('Gagal Simpan', 'Data aset tidak valid atau belum dipilih.', 'error');
+                    return;
+                }
+            }
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
@@ -1522,13 +1543,13 @@
             sendLogToServer(newHistoryLog);
 
             closeOpnameModal();
-            showToast('Opname Tersimpan', `Hasil verifikasi ${activeOpnameAsset.id} berhasil dicatat.`, 'success');
+            showToast('Opname Tersimpan', `Hasil verifikasi ${activeOpnameAsset.id} berhasil dicatat dan masuk ke database.`, 'success');
 
             renderKPIs();
             renderHistoryTable();
             renderRecapView();
         }
-
+        
         function fillBarcodeInput(assetId) {
             const inputEl = document.getElementById('mainBarcodeInput');
             if (inputEl) inputEl.value = assetId;
