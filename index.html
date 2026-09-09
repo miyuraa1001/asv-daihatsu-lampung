@@ -442,37 +442,40 @@
         </div>
 
         <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                <div>
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-astra-600"></i>
-                        <span>Log Pemindaian (Stock Opname)</span>
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi riwayat scan fisik, status aset, label, dan lampiran foto temuan</p>
+            <!-- Header Card Riwayat yang Fleksibel & Responsif -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-astra-600"></i>
+                            <span>Log Pemindaian (Stock Opname)</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi riwayat scan fisik, status aset, label, dan lampiran foto temuan</p>
+                    </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <div class="relative min-w-[200px]">
+                <!-- Toolbar Filter, Cari, dan Aksi -->
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <div class="relative min-w-[180px] flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500">
+                        <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <select id="historyMethodFilter" onchange="renderHistoryTable()" class="w-full sm:w-auto text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-astra-500">
-                            <option value="ALL">Semua Metode</option>
-                            <option value="Scan">Scan (Kamera/Foto)</option>
-                            <option value="Manual">Manual</option>
-                        </select>
+                    <select id="historyMethodFilter" onchange="renderHistoryTable()" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-astra-500">
+                        <option value="ALL">Semua Metode</option>
+                        <option value="Scan">Scan (Kamera/Foto)</option>
+                        <option value="Manual">Manual</option>
+                    </select>
 
-                        <button onclick="exportHistoryToExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
-                            <i class="fa-solid fa-file-excel"></i>
-                            <span class="hidden sm:inline">Export Excel</span>
-                        </button>
+                    <button onclick="exportHistoryToExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Export</span>
+                    </button>
 
-                        <button onclick="requestClearHistory()" title="Bersihkan log riwayat" class="px-3 py-2 bg-slate-100 hover:bg-daihatsu-50 hover:text-daihatsu-700 text-slate-600 font-semibold text-xs rounded-lg transition shrink-0">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
+                    <button onclick="requestClearAllHistory()" title="Bersihkan semua log riwayat" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs rounded-lg transition shrink-0 flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span class="hidden sm:inline">Hapus Semua</span>
+                    </button>
                 </div>
             </div>
 
@@ -494,6 +497,7 @@
                             <th class="py-3 px-3">Metode Opname</th>
                             <th class="py-3 px-3 text-center">Aset Temuan (Foto)</th>
                             <th class="py-3 px-3">Keterangan</th>
+                            <th class="py-3 px-3 text-center">Aksi</th> <!-- TAMBAHAN KOLOM AKSI -->
                         </tr>
                     </thead>
                     <tbody id="historyTableBody" class="divide-y divide-slate-200 text-slate-700 bg-white">
@@ -1839,6 +1843,7 @@
                         `;
                     }
 
+                    // Di dalam perulangan renderHistoryTable():
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-xs";
                     tr.innerHTML = `
@@ -1855,6 +1860,11 @@
                         <td class="py-2.5 px-3 whitespace-nowrap">${metodeBadge}</td>
                         <td class="py-2.5 px-3 text-center whitespace-nowrap">${fotoHtml}</td>
                         <td class="py-2.5 px-3 text-slate-600 max-w-xs truncate" title="${item.keterangan || '-'}">${item.keterangan || '-'}</td>
+                        <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                            <button onclick="deleteSingleLog('${item.assetId}', '${item.subNumber || '0'}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Hapus log ini">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -2534,6 +2544,34 @@
                     playBeepSound('error');
                     showToast('Gagal Membaca', 'Barcode tidak ditemukan pada foto yang diambil. Coba ulangi.', 'error');
                 });
+        }
+
+        function deleteSingleLog(assetId, subNumber) {
+            askConfirm(
+                'Hapus Log Riwayat',
+                `Apakah Anda yakin ingin menghapus log untuk Aset ID ${assetId} ini? Data juga akan terhapus dari database Spreadsheet.`,
+                () => {
+                    // 1. Hapus dari array lokal historyLogs
+                    historyLogs = historyLogs.filter(h => !(String(h.assetId) === String(assetId) && String(h.subNumber || '0') === String(subNumber || '0')));
+        
+                    // 2. Kirim permintaan hapus ke Server/Google Sheets via Proxy
+                    fetch(PROXY_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: "deleteLog",
+                            assetId: assetId,
+                            subNumber: subNumber
+                        })
+                    }).catch(err => console.log("Gagal sync hapus ke server:", err));
+        
+                    // 3. Render ulang tampilan
+                    renderHistoryTable();
+                    renderKPIs();
+                    renderRecapView();
+                    showToast('Berhasil Dihapus', `Log aset ${assetId} telah dihapus.`, 'success');
+                }
+            );
         }
 
         // Cek dan ambil URL dari environment server Vercel secara otomatis jika belum ada di localStorage
