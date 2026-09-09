@@ -256,18 +256,7 @@
                         Aplikasi digital untuk melakukan pemindaian barcode, verifikasi keberadaan dan kondisi aset, serta pencatatan data aset secara terintegrasi.
                     </p>
                 </div>
-                    
-                    <!-- Auto-Save Toggle Mode -->
-                    <div class="flex items-center space-x-2 bg-slate-950/60 p-2 rounded-xl border border-slate-700/60">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="autoSaveToggle" checked onchange="toggleAutoSaveMode(this.checked)" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                        </label>
-                        <span id="autoSaveLabel" class="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                            <i class="fa-solid fa-bolt text-amber-400"></i> Auto-Simpan Instan
-                        </span>
-                    </div>
-                </div>
+             </div>
 
                 <!-- Input + Action Button Group -->
                 <div class="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/20 flex flex-col sm:flex-row items-stretch gap-2">
@@ -522,7 +511,7 @@
 
     <!-- VIEW 4: REKAPITULASI CABANG & RUANGAN -->
     <main id="recapView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
             <div>
                 <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-layer-group text-astra-600"></i>
@@ -530,10 +519,19 @@
                 </h2>
                 <p class="text-xs text-slate-500 mt-0.5">Ringkasan rekapitulasi aset berdasarkan Business Area dan Lokasi Ruangan</p>
             </div>
-            <button onclick="exportRecapToExcel()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm shrink-0">
-                <i class="fa-solid fa-file-excel"></i>
-                <span>Download Rekap Excel</span>
-            </button>
+            
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <!-- DROPDOWN FILTER RUANGAN KHUSUS MENU REKAP -->
+                <select id="recapRoomFilter" onchange="renderRecapView()" class="text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
+                    <option value="ALL">Semua Ruangan</option>
+                    <!-- Terisi otomatis via JS -->
+                </select>
+
+                <button onclick="exportRecapToExcel()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm shrink-0">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Download Rekap Excel</span>
+                </button>
+            </div>
         </div>
 
         <div id="recapSummaryBar" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4"></div>
@@ -588,8 +586,9 @@
             <span class="text-[10px] mt-0.5">Aset</span>
         </button>
 
-        <button onclick="openCameraModal()" class="flex flex-col items-center justify-center -mt-5 bg-gradient-to-tr from-daihatsu-600 to-astra-600 text-white p-3 rounded-full shadow-lg border-2 border-white active:scale-95 transition">
-            <i class="fa-solid fa-camera text-lg"></i>
+        <!-- Ubah onclick tombol kamera bawah menjadi openScanMethodModal() -->
+        <button onclick="openScanMethodModal()" class="absolute -top-5 left-1/2 transform -translate-x-1/2 w-14 h-14 rounded-full bg-gradient-to-tr from-daihatsu-700 via-daihatsu-600 to-astra-700 text-white flex items-center justify-center shadow-lg shadow-daihatsu-600/40 border-4 border-white active:scale-95 transition-all">
+            <i class="fa-solid fa-camera text-xl"></i>
         </button>
 
         <button onclick="switchView('history')" id="mobileNavHistory" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
@@ -676,18 +675,27 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="font-bold text-slate-800 flex items-center gap-1.5">
                             <i class="fa-solid fa-camera text-daihatsu-600"></i>
-                            <span>Aset Temuan (Lampirkan Foto Jika Ada Temuan / Rusak)</span>
+                            <span>Aset Temuan / Bukti Kerusakan (Wajib jika ada temuan)</span>
                         </label>
                         <span id="temuanBadge" class="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">Opsional</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 mb-3">Jika barcode rusak, label hilang, atau aset fisik mengalami kerusakan, ambil foto langsung menggunakan kamera atau unggah file foto bukti.</p>
+                    <p class="text-[11px] text-slate-500 mb-3">Jika barcode rusak, label hilang, atau aset mengalami kerusakan, ambil foto langsung menggunakan kamera HP.</p>
                     
                     <div class="flex flex-col sm:flex-row items-center gap-3">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <label class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-xs transition w-full sm:w-auto">
-                                <i class="fa-solid fa-paperclip text-astra-600"></i>
-                                <span>Pilih Foto Bukti</span>
-                                <input type="file" id="opnameFotoInput" accept="image/*" onchange="handleEvidencePhoto(event)" class="hidden">
+                        <div class="flex flex-wrap items-center gap-2 w-full">
+                            <!-- TOMBOL 1: AMBIL FOTO LANGSUNG DARI KAMERA HP -->
+                            <label class="cursor-pointer bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-xs transition flex-1">
+                                <i class="fa-solid fa-camera-retro"></i>
+                                <span>Buka Kamera HP</span>
+                                <!-- capture="environment" langsung memicu kamera belakang -->
+                                <input type="file" id="opnameCameraInput" accept="image/*" capture="environment" onchange="handleCompressedPhoto(event)" class="hidden">
+                            </label>
+
+                            <!-- TOMBOL 2: PILIH DARI GALERI (OPSIONAL) -->
+                            <label class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-xs transition flex-1">
+                                <i class="fa-solid fa-image text-astra-600"></i>
+                                <span>Dari Galeri</span>
+                                <input type="file" id="opnameGalleryInput" accept="image/*" onchange="handleCompressedPhoto(event)" class="hidden">
                             </label>
                             
                             <button type="button" id="btnRemoveFoto" onclick="clearEvidencePhoto()" class="hidden text-rose-600 hover:text-rose-700 font-semibold text-xs px-2 py-2">
@@ -695,11 +703,11 @@
                             </button>
                         </div>
 
-                        <div id="temuanPreviewContainer" class="hidden flex items-center gap-2 bg-white p-1.5 border border-slate-200 rounded-lg">
-                            <img id="temuanPreviewImg" src="" alt="Bukti Temuan" class="w-12 h-12 object-cover rounded border border-slate-200 cursor-pointer" onclick="viewPhotoDetail(this.src)">
-                            <div class="text-[11px]">
-                                <span class="text-emerald-600 font-bold block"><i class="fa-solid fa-check mr-1"></i>Foto Terlampir</span>
-                                <span class="text-slate-400 text-[10px]">Klik gambar untuk memperbesar</span>
+                        <div id="temuanPreviewContainer" class="hidden flex items-center gap-2 bg-white p-1.5 border border-slate-200 rounded-lg w-full">
+                            <img id="temuanPreviewImg" src="" alt="Bukti Temuan" class="w-12 h-12 object-cover rounded border border-slate-200 cursor-pointer shrink-0" onclick="viewPhotoDetail(this.src)">
+                            <div class="text-[11px] min-w-0 flex-1">
+                                <span class="text-emerald-600 font-bold block truncate"><i class="fa-solid fa-check mr-1"></i>Foto Terkompresi Siap</span>
+                                <span id="photoSizeInfo" class="text-slate-400 text-[10px] block truncate">Ukuran diperkecil untuk hemat storage</span>
                             </div>
                         </div>
                     </div>
@@ -823,22 +831,26 @@
             </div>
 
             <div class="p-3 sm:p-4 space-y-3">
+                <!-- Wrapper Kamera dengan fix overflow dan aspect ratio -->
                 <div class="relative w-full h-56 sm:h-64 bg-slate-950 rounded-xl overflow-hidden flex flex-col items-center justify-center border border-slate-800 select-none">
-                    <div id="cameraReader" class="w-full h-full"></div>
+                    
+                    <!-- Elemen Scanner dengan CSS pemaksa agar video pas di dalam kotak -->
+                    <div id="cameraReader" class="w-full h-full [&_video]:w-full [&_video]:h-full [&_video]:object-cover"></div>
                     
                     <div id="cameraScanOverlay" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-between p-3.5 z-10">
-                        <div class="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-700/60 flex items-center gap-2 text-[11px] text-slate-200 shadow-lg">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <div id="scannerStatusBadge" class="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-700/60 flex items-center gap-2 text-[11px] text-slate-200 shadow-lg transition-all">
+                            <span id="scannerStatusDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                             <i class="fa-solid fa-barcode text-amber-400"></i>
-                            <span class="font-medium">Kamera Standby - Arahkan ke Barcode</span>
+                            <span id="scannerStatusText" class="font-medium">Kamera Standby - Arahkan ke Barcode</span>
                         </div>
 
-                        <div class="relative w-[88%] max-w-[320px] h-[95px] sm:h-[110px] my-auto rounded-lg border-2 border-emerald-400/90 shadow-[0_0_20px_rgba(52,211,153,0.35)] bg-emerald-500/5 overflow-hidden">
-                            <div class="absolute left-1 right-1 h-0.5 bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_12px_#f43f5e] animate-laser"></div>
+                        <div class="relative w-[88%] max-w-[320px] h-[90px] sm:h-[110px] my-auto rounded-lg border-2 border-emerald-400/90 shadow-[0_0_20px_rgba(52,211,153,0.35)] bg-emerald-500/5 overflow-hidden flex items-center justify-center">
+                            <!-- Garis laser merah animasi -->
+                            <div id="laserLine" class="absolute left-1 right-1 h-0.5 bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_12px_#f43f5e] animate-laser"></div>
                         </div>
 
                         <div class="text-[10px] text-slate-300 bg-slate-950/80 px-3 py-1 rounded-md border border-slate-800/80">
-                            Arahkan barcode ke dalam kotak merah
+                            Arahkan barcode ke dalam kotak hijau
                         </div>
                     </div>
 
@@ -849,7 +861,7 @@
                 </div>
 
                 <!-- KOTAK PREVIEW HASIL SCAN DI BAWAH KAMERA -->
-                <div id="cameraAssetPreviewBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+                <div id="cameraAssetPreviewBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5 transition-all">
                     <div class="flex items-center justify-between text-[11px]">
                         <span class="text-slate-400 font-bold uppercase tracking-wider">Hasil Deteksi Barcode:</span>
                         <span id="previewScanCode" class="font-mono font-bold text-slate-900 bg-slate-200 px-2 py-0.5 rounded">-</span>
@@ -870,6 +882,53 @@
                     <span>Proses & Verifikasi</span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL PILIHAN METODE SCAN -->
+    <div id="scanMethodModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs hidden flex items-end sm:items-center justify-center p-3 sm:p-4" onclick="closeScanMethodModal()">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 transform transition-all" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-daihatsu-50 text-daihatsu-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-camera-rotate text-sm"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm">Pilih Metode Pemindaian</h3>
+                </div>
+                <button onclick="closeScanMethodModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <!-- Opsi 1: Live Scanner Kamera -->
+                <button onclick="selectLiveCameraScan()" class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-daihatsu-50 border border-slate-200 hover:border-daihatsu-300 transition text-left group">
+                    <div class="w-10 h-10 rounded-lg bg-daihatsu-600 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <div class="ml-3 min-w-0 flex-1">
+                        <p class="font-bold text-slate-800 text-xs group-hover:text-daihatsu-700">Scan Live Kamera</p>
+                        <p class="text-[10px] text-slate-500">Gunakan sorotan kamera langsung untuk deteksi barcode otomatis.</p>
+                    </div>
+                </button>
+
+                <!-- Opsi 2: Ambil Foto / Upload Barcode via HP -->
+                <label class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-astra-50 border border-slate-200 hover:border-astra-300 transition text-left cursor-pointer group">
+                    <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                    </div>
+                    <div class="ml-3 min-w-0 flex-1">
+                        <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Foto / Unggah Barcode</p>
+                        <p class="text-[10px] text-slate-500">Ambil foto stiker barcode pakai kamera HP atau galeri.</p>
+                    </div>
+                    <!-- Input file tersembunyi khusus baca gambar barcode -->
+                    <input type="file" accept="image/*" capture="environment" onchange="handleImageBarcodeUpload(event)" class="hidden">
+                </label>
+            </div>
+
+            <button onclick="closeScanMethodModal()" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition">
+                Batal
+            </button>
         </div>
     </div>
     
@@ -1537,7 +1596,9 @@
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
+            
+            // UBAH BARIS INI: Hanya ambil format Jam, Menit, Detik saja (HH:MM:SS)
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             const lokasiActual = safeGetValue('opnameInputLokasiActual', activeOpnameAsset.lokasi).trim();
             const metode = safeGetValue('opnameInputMetode', activeOpnameMethod);
@@ -1553,7 +1614,7 @@
                 deskripsi: activeOpnameAsset.deskripsi,
                 lokasiSap: activeOpnameAsset.lokasi,
                 lokasiOpname: lokasiActual,
-                waktuScan: timeStr,
+                waktuScan: timeStr, // Ini akan terisi jam bersih (contoh: 09:34:08)
                 statusAset: statusAset,
                 statusLabel: statusLabel,
                 metodeOpname: metode,
@@ -1885,15 +1946,25 @@
         // Variabel penampung sementara hasil scan kamera aktif
         let scannedPreviewAsset = null;
         let scannedRawBarcode = "";
+        let isBarcodeDetected = false; // Status pengunci scanner
 
-        // --- CAMERA SCANNER & PREVIEW INTEGRATION ---
         function openCameraModal() {
             scannedPreviewAsset = null;
             scannedRawBarcode = "";
+            isBarcodeDetected = false; // Reset kunci
+
             safeSetText('previewScanCode', '-');
             const contentBox = document.getElementById('previewAssetContent');
             if (contentBox) contentBox.innerHTML = 'Belum ada barcode yang terpindai. Arahkan kamera ke stiker...';
             
+            // Kembalikan tampilan status standby
+            const badgeText = document.getElementById('scannerStatusText');
+            const badgeDot = document.getElementById('scannerStatusDot');
+            const laser = document.getElementById('laserLine');
+            if (badgeText) badgeText.innerText = "Kamera Standby - Arahkan ke Barcode";
+            if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+            if (laser) laser.style.display = "block";
+
             const actionBtn = document.getElementById('btnProcessCameraPreview');
             if (actionBtn) {
                 actionBtn.disabled = true;
@@ -1907,7 +1978,11 @@
 
         async function stopActiveScanner() {
             if (html5QrCodeScanner) {
-                try { await html5QrCodeScanner.stop(); } catch (e) {}
+                try { 
+                    if (html5QrCodeScanner.isScanning) {
+                        await html5QrCodeScanner.stop(); 
+                    }
+                } catch (e) {}
                 try { html5QrCodeScanner.clear(); } catch (e) {}
                 html5QrCodeScanner = null;
             }
@@ -1924,14 +1999,35 @@
         
             try {
                 html5QrCodeScanner = new Html5Qrcode("cameraReader");
-                const config = { fps: 10, qrbox: { width: 250, height: 140 } };
+                const config = { fps: 15, qrbox: { width: 250, height: 120 } };
         
-                const qrCodeSuccessCallback = (decodedText) => {
-                    let rawText = decodedText.trim();
-                    if (rawText.length < 8) return; // Abaikan jika barcode terbaca terpotong
+                const qrCodeSuccessCallback = async (decodedText) => {
+                    // Jika sudah tertangkap satu kali, abaikan scan berikutnya agar tidak berubah-ubah
+                    if (isBarcodeDetected) return;
 
+                    let rawText = decodedText.trim();
+                    if (rawText.length < 8) return; 
+
+                    isBarcodeDetected = true; // Kunci scanner
                     playBeepSound('success');
                     scannedRawBarcode = rawText;
+
+                    // Hentikan/pause kamera agar tidak memindai lagi
+                    try {
+                        if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
+                            await html5QrCodeScanner.pause(true); // Pause tampilan kamera
+                        }
+                    } catch (e) {
+                        try { await html5QrCodeScanner.stop(); } catch(err){}
+                    }
+
+                    // Ubah badge status menjadi Berhasil Terdeteksi & matikan laser
+                    const badgeText = document.getElementById('scannerStatusText');
+                    const badgeDot = document.getElementById('scannerStatusDot');
+                    const laser = document.getElementById('laserLine');
+                    if (badgeText) badgeText.innerText = "Barcode Berhasil Dikunci!";
+                    if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                    if (laser) laser.style.display = "none";
 
                     const inputEl = document.getElementById('mainBarcodeInput');
                     if (inputEl) inputEl.value = rawText;
@@ -1985,7 +2081,7 @@
 
                     if (actionBtn) {
                         actionBtn.disabled = false;
-                        actionBtn.className = "w-1/2 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer";
+                        actionBtn.className = "w-1/2 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer animate-bounce";
                     }
                 };
         
@@ -2011,9 +2107,12 @@
         }
 
         async function closeCameraModal() {
+            isBarcodeDetected = false;
             if (typeof html5QrCodeScanner !== 'undefined' && html5QrCodeScanner) {
                 try {
-                    await html5QrCodeScanner.stop();
+                    if (html5QrCodeScanner.isScanning) {
+                        await html5QrCodeScanner.stop();
+                    }
                     html5QrCodeScanner.clear();
                 } catch (e) {}
                 html5QrCodeScanner = null;
@@ -2072,27 +2171,54 @@
         function renderRecapView() {
             const container = document.getElementById('recapBranchCards');
             const summaryBar = document.getElementById('recapSummaryBar');
+            const roomSelect = document.getElementById('recapRoomFilter');
             if (!container) return;
 
             const selectedBranch = safeGetValue('branchSelector', 'ALL');
-            const scopedAssets = selectedBranch === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(a.cabang));
+            
+            // 1. Populate dropdown ruangan rekap secara dinamis berdasarkan cabang yang sedang aktif
+            if (roomSelect) {
+                const currentRoomVal = roomSelect.value;
+                const scopedForRooms = selectedBranch === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(a.cabang));
+                const uniqueRooms = [...new Set(scopedForRooms.map(a => String(a.lokasi || "").trim().toUpperCase()))].filter(Boolean);
+                uniqueRooms.sort();
+
+                let roomOptionsHtml = '<option value="ALL">Semua Ruangan</option>';
+                uniqueRooms.forEach(r => {
+                    roomOptionsHtml += `<option value="${r}">${r}</option>`;
+                });
+                roomSelect.innerHTML = roomOptionsHtml;
+                if (uniqueRooms.includes(currentRoomVal)) {
+                    roomSelect.value = currentRoomVal;
+                }
+            }
+
+            const selectedRoom = safeGetValue('recapRoomFilter', 'ALL');
+
+            // 2. Filter data berdasarkan Cabang DAN Ruangan yang dipilih
+            const scopedAssets = assets.filter(a => {
+                const matchBranch = selectedBranch === 'ALL' || a.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(a.cabang);
+                const matchRoom = selectedRoom === 'ALL' || String(a.lokasi || "").trim().toUpperCase() === selectedRoom;
+                return matchBranch && matchRoom;
+            });
+
             const scopedLogs = selectedBranch === 'ALL' ? historyLogs : historyLogs.filter(h => h.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(h.cabang));
 
             const scannedAssetIds = new Set(scopedLogs.map(h => h.assetId));
             const totalAssets = scopedAssets.length;
             const totalScanned = scopedAssets.filter(a => scannedAssetIds.has(a.id)).length;
             const totalPending = Math.max(0, totalAssets - totalScanned);
-            const uniqueRooms = [...new Set(scopedAssets.map(a => a.lokasi || 'LAINNYA'))].length;
+            const uniqueRoomsCount = [...new Set(scopedAssets.map(a => a.lokasi || 'LAINNYA'))].length;
 
             if (summaryBar) {
                 summaryBar.innerHTML = `
                     <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
-                        <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Aset</p>
+                        <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Aset (Filter)</p>
                         <h4 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">${totalAssets} <span class="text-xs font-normal text-slate-500">Unit</span></h4>
                     </div>
                     <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
                         <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Ruangan</p>
-                        <h4 class="text-xl sm:text-2xl font-black text-astra-600 mt-1">${uniqueRooms} <span class="text-xs font-normal text-slate-500">Lokasi</span></h4>
+                        <h4 class="text-xl sm:text-2xl font-black text-astra-600 mt-1">${uniqueRoomsCount} <span class="text-xs font-normal text-slate-500">Lokasi</span></h4>
                     </div>
                     <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
                         <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">Terscan Opname</p>
@@ -2111,7 +2237,7 @@
             branches.forEach(b => {
                 const branchLabel = branchNames[b] || b;
                 const bAssets = scopedAssets.filter(a => a.cabang.startsWith(b) || b.startsWith(a.cabang));
-                if (bAssets.length === 0 && selectedBranch !== 'ALL') return;
+                if (bAssets.length === 0) return; // Sembunyikan cabang jika tidak ada aset di ruangan yang dipilih
 
                 const branchTotal = bAssets.length;
                 const branchScanned = bAssets.filter(a => scannedAssetIds.has(a.id)).length;
@@ -2202,13 +2328,13 @@
                         </div>
                     </div>
                     <div class="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                        ${roomsHtml || '<p class="text-xs text-slate-400 italic">Tidak ada aset terdaftar di cabang ini.</p>'}
+                        ${roomsHtml}
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
-
+        
         function exportRecapToExcel() {
             try {
                 const exportRows = [];
@@ -2275,6 +2401,110 @@
             if (uniqueRooms.includes(currentSelected)) {
                 selectEl.value = currentSelected;
             }
+        }
+
+        // Fungsi Kompresi Foto Otomatis agar Ukurannya Sangat Kecil
+        function handleCompressedPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Memproses Foto', 'Mengompres ukuran foto agar hemat Google Drive...', 'info');
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Tentukan batas maksimal dimensi gambar (lebar maks 600px)
+                    const MAX_WIDTH = 600;
+                    const MAX_HEIGHT = 600;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Ubah ke format JPEG dengan kualitas 0.6 (60%) agar file sangat kecil
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+
+                    // Simpan ke variabel global aktif
+                    activeEvidencePhoto = compressedBase64;
+
+                    // Hitung perkiraan ukuran string Base64 dalam Kilobyte (KB)
+                    const sizeInKb = Math.round((compressedBase64.length * 3) / 4 / 1024);
+
+                    // Tampilkan preview
+                    const previewImg = document.getElementById('temuanPreviewImg');
+                    const previewContainer = document.getElementById('temuanPreviewContainer');
+                    const btnRemove = document.getElementById('btnRemoveFoto');
+                    const sizeInfo = document.getElementById('photoSizeInfo');
+
+                    if (previewImg) previewImg.src = compressedBase64;
+                    if (previewContainer) previewContainer.classList.remove('hidden');
+                    if (btnRemove) btnRemove.classList.remove('hidden');
+                    if (sizeInfo) sizeInfo.innerText = `Ukuran: ~${sizeInKb} KB (Sangat Hemat)`;
+
+                    showToast('Berhasil', `Foto berhasil dikompres (~${sizeInKb} KB).`, 'success');
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openScanMethodModal() {
+            const modal = document.getElementById('scanMethodModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeScanMethodModal() {
+            const modal = document.getElementById('scanMethodModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function selectLiveCameraScan() {
+            closeScanMethodModal();
+            openCameraModal(); // Membuka live scanner kamera utama yang sudah kita buat sebelumnya
+        }
+
+        // Fitur opsional tambahan: Membaca barcode dari hasil jepretan foto HP/Galeri
+        function handleImageBarcodeUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            closeScanMethodModal();
+            showToast('Memindai Gambar', 'Membaca barcode dari foto...', 'info');
+
+            // Memanfaatkan html5Qrcode untuk memindai file gambar yang diunggah
+            const html5QrCode = new Html5Qrcode("cameraReader"); // elemen penampung sementara
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    html5QrCode.clear();
+                    // Masukkan hasil scan ke input utama dan langsung proses verifikasi
+                    const inputEl = document.getElementById('mainBarcodeInput');
+                    if (inputEl) inputEl.value = decodedText;
+                    playBeepSound('success');
+                    triggerOpnameLookup('Scan');
+                })
+                .catch(err => {
+                    html5QrCode.clear();
+                    playBeepSound('error');
+                    showToast('Gagal Membaca', 'Barcode tidak ditemukan pada foto yang diambil. Coba ulangi.', 'error');
+                });
         }
 
         // Cek dan ambil URL dari environment server Vercel secara otomatis jika belum ada di localStorage
