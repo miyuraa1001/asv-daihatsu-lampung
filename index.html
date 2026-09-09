@@ -1418,6 +1418,7 @@
                     let scannedId = parts[0].trim().toLowerCase();
                     let scannedSub = (parts[1] || "0").trim().toLowerCase();
 
+                    // Cari aset di master data
                     let foundAsset = assets.find(a => {
                         let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                         let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -1433,6 +1434,7 @@
                         return;
                     }
 
+                    // Cek duplikat harian
                     const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
                     const alreadyScannedToday = historyLogs.some(h => {
                         let hId = String(h.assetId || "").trim().toLowerCase();
@@ -1449,6 +1451,7 @@
                         return;
                     }
 
+                    // PENTING: Buka modal verifikasi agar petugas bisa klik tombol "Simpan Log Opname"
                     openOpnameModal(foundAsset, 'Scan');
                 })
                 .catch(err => {
