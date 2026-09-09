@@ -1023,24 +1023,28 @@
         }
 
         function sendLogToServer(logData) {
-            if (googleSheetsWebhookUrl) {
-                fetch(googleSheetsWebhookUrl, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: "addLog", data: logData })
-                }).then(() => {
-                    console.log("Log & Foto terkirim ke Google Sheets.");
-                }).catch(err => console.log('Sheets Webhook Error:', err));
-            }
-
-            fetch(PROXY_API_URL, {
+            // Mengirim data menggunakan jalur Proxy Vercel yang aman dan terintegrasi token
+            return fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: "addLog", data: logData })
-            }).catch(err => console.log("Proxy sync error:", err));
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    console.log("Log berhasil masuk database Google Spreadsheet.");
+                    return true;
+                } else {
+                    console.warn("Database menolak:", res.message);
+                    return false;
+                }
+            })
+            .catch(err => {
+                console.error("Proxy sync error:", err);
+                return false;
+            });
         }
-
+        
         function deleteSingleLog(assetId, subNumber) {
             askConfirm(
                 'Hapus Log Riwayat',
@@ -1532,6 +1536,9 @@
                 }
             }
 
+            // AMANKAN ID ASET DI SINI SEBELUM PROSES FETCH BERJALAN
+            const currentAssetId = activeOpnameAsset.id;
+
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -1544,7 +1551,7 @@
 
             const newHistoryLog = {
                 tanggalScan: dateStr,
-                assetId: activeOpnameAsset.id,
+                assetId: currentAssetId,
                 subNumber: activeOpnameAsset.subNumber || '0',
                 cabang: activeOpnameAsset.cabang,
                 deskripsi: activeOpnameAsset.deskripsi,
@@ -1568,31 +1575,31 @@
             })
             .then(res => res.json())
             .then(res => {
-                // Walaupun status dari server kadang terdeteksi string/boolean, kita amankan kondisinya
                 closeOpnameModal();
-                showToast('Berhasil Disimpan!', `Data opname aset ${activeOpnameAsset.id} berhasil tersimpan ke database.`, 'success');
+                
+                // Gunakan currentAssetId yang aman
+                showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil tersimpan ke database.`, 'success');
                 playBeepSound('success');
 
-                // Masukkan langsung ke array lokal dan tarik data terbaru dari server
                 historyLogs.unshift(newHistoryLog);
                 renderKPIs();
                 renderHistoryTable();
                 renderRecapView();
                 
-                // Panggil fungsi sinkronisasi data cloud jika ada
                 if (typeof loadLogsFromServer === 'function') {
                     loadLogsFromServer();
                 }
             })
             .catch(err => {
-                // Tangani jika error parsing JSON tapi data aslinya sebenarnya masuk
                 console.log("Catatan: Data terkirim ke server.");
                 closeOpnameModal();
                 historyLogs.unshift(newHistoryLog);
                 renderKPIs();
                 renderHistoryTable();
                 renderRecapView();
-                showToast('Berhasil Disimpan!', `Data opname aset ${activeOpnameAsset.id} berhasil dicatat.`, 'success');
+                
+                // Gunakan currentAssetId yang aman
+                showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil dicatat.`, 'success');
             });
         }
         
@@ -2473,21 +2480,17 @@
                 });
         }
 
-        function loadServerEnvironmentConfig() {
-            if (!googleSheetsWebhookUrl) {
-                fetch('/api/config')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.gasUrl) {
-                            googleSheetsWebhookUrl = data.gasUrl;
-                        }
-                    })
-                    .catch(err => {});
-            }
-        }
-
+        
         // --- INITIALIZATION ---
         window.onload = function () {
+            // Jalankan sinkronisasi otomatis setiap 8 detik di semua device
+            setInterval(() => {
+                // Jangan sinkronisasi otomatis jika modal sedang dibuka (sedang mengetik/proses)
+                const modal = document.getElementById('opnameModal');
+                if (!modal || modal.classList.contains('hidden')) {
+                    loadLogsFromServer();
+                }
+            }, 8000); // 8000 milidetik = 8 detik
             fetchDataFromBackend();
             loadServerEnvironmentConfig(); 
             
