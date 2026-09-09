@@ -969,7 +969,7 @@
         let isAutoSaveMode = false;
         let googleSheetsWebhookUrl = localStorage.getItem('app_sheets_url') || '';
 
-        // API Backend Proxy URL (Connected via Google Apps Script or Proxy Endpoint)
+        // API Backend Proxy URL
         const PROXY_API_URL = "/api/proxy";
 
         function safeSetText(id, text) {
@@ -986,7 +986,6 @@
         function fetchDataFromBackend() {
             showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
         
-            // Jika menggunakan Web App Google Apps Script langsung
             const fetchUrl = googleSheetsWebhookUrl ? googleSheetsWebhookUrl + "?action=getAssets" : `${PROXY_API_URL}?action=getAssets`;
 
             fetch(fetchUrl)
@@ -1009,7 +1008,6 @@
                     showToast('Koneksi Server', 'Gagal terhubung ke backend API.', 'warning');
                 });
 
-            // Tarik riwayat log
             const logsUrl = googleSheetsWebhookUrl ? googleSheetsWebhookUrl + "?action=getLogs" : `${PROXY_API_URL}?action=getLogs`;
             fetch(logsUrl)
                 .then(res => res.json())
@@ -1025,7 +1023,6 @@
         }
 
         function sendLogToServer(logData) {
-            // Kirim langsung ke Google Sheets Web App URL jika diisi di pengaturan
             if (googleSheetsWebhookUrl) {
                 fetch(googleSheetsWebhookUrl, {
                     method: 'POST',
@@ -1037,7 +1034,6 @@
                 }).catch(err => console.log('Sheets Webhook Error:', err));
             }
 
-            // Cadangan via Proxy API
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1097,74 +1093,6 @@
             );
         }
 
-        // Fungsi scan kamera HP yang langsung mengarah ke Modal Verifikasi (bukan auto-simpan)
-        function handleNativeCameraScan(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            showToast('Memindai Foto', 'Mendeteksi barcode dari foto kamera HP...', 'info');
-
-            const html5QrCode = new Html5Qrcode("cameraReader");
-            
-            html5QrCode.scanFile(file, true)
-                .then(decodedText => {
-                    html5QrCode.clear();
-                    let rawText = decodedText.trim();
-                    if (rawText.length < 8) {
-                        showToast('Tidak Valid', 'Barcode terlalu pendek atau tidak terbaca.', 'warning');
-                        return;
-                    }
-
-                    playBeepSound('success');
-                    const inputEl = document.getElementById('mainBarcodeInput');
-                    if (inputEl) inputEl.value = rawText;
-
-                    let cleanedText = rawText.replace(/[-_]/g, " ");
-                    let parts = cleanedText.split(/\s+/);
-                    let scannedId = parts[0].trim().toLowerCase();
-                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
-
-                    let foundAsset = assets.find(a => {
-                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
-                        return dbId === scannedId && dbSub === scannedSub;
-                    }) || assets.find(a => {
-                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                        return dbId === scannedId;
-                    });
-
-                    if (!foundAsset) {
-                        playBeepSound('error');
-                        showToast('Tidak Terdaftar', `Nomor Aset "${rawText}" tidak ada di Master Data.`, 'warning');
-                        return;
-                    }
-
-                    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-                    const alreadyScannedToday = historyLogs.some(h => {
-                        let hId = String(h.assetId || "").trim().toLowerCase();
-                        let hSub = String(h.subNumber || "0").trim().toLowerCase();
-                        let hDate = String(h.tanggalScan || "").trim();
-                        return hId === String(foundAsset.id).trim().toLowerCase() && 
-                               hSub === String(foundAsset.subNumber || "0").trim().toLowerCase() && 
-                               hDate === todayStr;
-                    });
-
-                    if (alreadyScannedToday) {
-                        playBeepSound('error');
-                        showToast('Aset Sudah Terscan', `Aset ${foundAsset.id} sudah pernah dipindai hari ini.`, 'warning');
-                        return;
-                    }
-
-                    // Membuka Modal Verifikasi terlebih dahulu sebelum disimpan
-                    openOpnameModal(foundAsset, 'Scan');
-                })
-                .catch(err => {
-                    html5QrCode.clear();
-                    playBeepSound('error');
-                    showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas dan fokus.', 'warning');
-                });
-        }
-
         // --- AUDIO FEEDBACK ---
         function playBeepSound(type = 'success') {
             try {
@@ -1195,78 +1123,6 @@
             } catch (e) {}
         }
 
-        function toggleAutoSaveMode(enabled) {
-            isAutoSaveMode = enabled;
-            const label = document.getElementById('autoSaveLabel');
-            if (label) {
-                if (enabled) {
-                    label.innerHTML = '<i class="fa-solid fa-bolt text-amber-400"></i> Auto-Simpan Instan';
-                    label.className = 'text-xs font-bold text-emerald-400 flex items-center gap-1';
-                    showToast('Mode Auto-Simpan Aktif', 'Hasil scan akan langsung masuk ke Database (Table 2).', 'success');
-                } else {
-                    label.innerHTML = '<i class="fa-solid fa-user-check text-indigo-400"></i> Mode Verifikasi Manual';
-                    label.className = 'text-xs font-bold text-indigo-300 flex items-center gap-1';
-                    showToast('Mode Verifikasi Manual', 'Form konfirmasi akan muncul setiap scan.', 'info');
-                }
-            }
-        }
-
-        function triggerOpnameLookupForVerification(method = 'Scan') {
-            const inputEl = document.getElementById('mainBarcodeInput');
-            if (!inputEl) return;
-
-            const barcodeText = inputEl.value.trim();
-            if (!barcodeText) {
-                playBeepSound('error');
-                showToast('Input Kosong', 'Harap masukkan ID Asset barcode terlebih dahulu.', 'warning');
-                return;
-            }
-
-            // Pecah string ID dan Sub-Number dengan aman
-            let cleanedText = barcodeText.replace(/[-_]/g, " ");
-            let parts = cleanedText.split(/\s+/);
-            let scannedId = parts[0].trim().toLowerCase();
-            let scannedSub = (parts[1] || "0").trim().toLowerCase();
-
-            // Cocokkan dengan database Master Aset (Table 1)
-            let foundAsset = assets.find(a => {
-                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
-                return dbId === scannedId && dbSub === scannedSub;
-            }) || assets.find(a => {
-                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                return dbId === scannedId;
-            });
-
-            // Cek apakah sudah discan hari ini
-            const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-            const alreadyScannedToday = historyLogs.some(h => {
-                let hId = String(h.assetId || "").trim().toLowerCase();
-                let hSub = String(h.subNumber || "0").trim().toLowerCase();
-                let hDate = String(h.tanggalScan || "").trim();
-                
-                let targetId = foundAsset ? String(foundAsset.id).trim().toLowerCase() : scannedId;
-                let targetSub = foundAsset ? String(foundAsset.subNumber || "0").trim().toLowerCase() : scannedSub;
-
-                return hId === targetId && hSub === targetSub && hDate === todayStr;
-            });
-
-            if (alreadyScannedToday) {
-                playBeepSound('error');
-                showToast('Aset Sudah Terscan', `Aset ${foundAsset ? foundAsset.id : scannedId} sudah pernah dipindai hari ini.`, 'warning');
-                return;
-            }
-
-            if (!foundAsset) {
-                playBeepSound('error');
-                showToast('Aset Tidak Ditemukan', `Nomor Barcode "${barcodeText}" tidak terdaftar di Master Aset.`, 'warning');
-                return;
-            }
-
-            // SELALU BUKA MODAL FORM VERIFIKASI SEBELUM DISIMPAN
-            openOpnameModal(foundAsset, method);
-        }
-
         function saveSheetsUrl(url) {
             googleSheetsWebhookUrl = url.trim();
             localStorage.setItem('app_sheets_url', googleSheetsWebhookUrl);
@@ -1291,13 +1147,11 @@
                 return;
             }
 
-            // 1. Tangani berbagai variasi pemisah dari scanner (spasi, strip, atau gabungan)
             let cleanedText = barcodeText.replace(/[-_]/g, " ");
             let parts = cleanedText.split(/\s+/);
             let scannedId = parts[0].trim().toLowerCase();
             let scannedSub = (parts[1] || "0").trim().toLowerCase();
 
-            // 2. Pencarian data di Master Aset (Table 1) dengan toleransi tipe data
             let foundAsset = assets.find(a => {
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -1307,7 +1161,6 @@
                 return dbId === scannedId;
             });
 
-            // 3. Cek apakah aset ini sudah pernah di-scan HARI INI di riwayat (Table 2)
             const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
             const alreadyScannedToday = historyLogs.some(h => {
                 let hId = String(h.assetId || "").trim().toLowerCase();
@@ -1326,65 +1179,13 @@
                 return;
             }
 
-            // 4. Jika aset belum terdaftar di Master Data
             if (!foundAsset) {
                 playBeepSound('error');
-                askConfirm(
-                    'Aset Tidak Terdaftar di Master Data',
-                    `Nomor Aset "${barcodeText}" belum ada di Master Data . Tetap simpan sebagai Aset Temuan Baru ke Database ?`,
-                    () => {
-                        const tempAsset = {
-                            id: scannedId,
-                            subNumber: scannedSub,
-                            cabang: safeGetValue('branchSelector', 'D660') === 'ALL' ? 'D660' : safeGetValue('branchSelector', 'D660'),
-                            deskripsi: `TEMUAN_ASET_${scannedId}`,
-                            capitalizedOn: "-",
-                            lokasi: "TEMUAN_OPNAME"
-                        };
-                        executeDirectAutoSave(tempAsset, method, "Aset temuan baru (tidak terdaftar di master data)");
-                    }
-                );
+                showToast('Aset Tidak Ditemukan', `Nomor Barcode "${barcodeText}" tidak terdaftar di Master Aset.`, 'warning');
                 return;
             }
 
-            // 5. Eksekusi simpan otomatis atau buka modal verifikasi
-            if (isAutoSaveMode && method !== 'Manual') {
-                executeDirectAutoSave(foundAsset, method);
-            } else {
-                openOpnameModal(foundAsset, method);
-            }
-        }
-        
-        function executeDirectAutoSave(assetObj, method, customNote = "") {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
-
-            const newHistoryLog = {
-                tanggalScan: dateStr,
-                assetId: assetObj.id,
-                subNumber: assetObj.subNumber || '0',
-                cabang: assetObj.cabang,
-                deskripsi: assetObj.deskripsi,
-                lokasiSap: assetObj.lokasi,
-                lokasiOpname: assetObj.lokasi,
-                waktuScan: timeStr,
-                statusAset: "Baik",
-                statusLabel: "Baik",
-                metodeOpname: method,
-                asetTemuan: null,
-                keterangan: customNote || "Scan otomatis berhasil - Kondisi terverifikasi"
-            };
-
-            historyLogs.unshift(newHistoryLog);
-            playBeepSound('success');
-            sendLogToServer(newHistoryLog);
-
-            showToast('Scan & Tersimpan!', `Aset ${assetObj.id} (${assetObj.deskripsi}) langsung masuk ke Database.`, 'success');
-
-            renderKPIs();
-            renderHistoryTable();
-            renderRecapView();
+            openOpnameModal(foundAsset, method);
         }
 
         // --- UI UTILITIES & TOASTS ---
@@ -1591,6 +1392,72 @@
             }
         }
 
+        function handleNativeCameraScan(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Memindai Foto', 'Mendeteksi barcode dari foto kamera HP...', 'info');
+
+            const html5QrCode = new Html5Qrcode("cameraReader");
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    html5QrCode.clear();
+                    let rawText = decodedText.trim();
+                    if (rawText.length < 8) {
+                        showToast('Tidak Valid', 'Barcode terlalu pendek atau tidak terbaca.', 'warning');
+                        return;
+                    }
+
+                    playBeepSound('success');
+                    const inputEl = document.getElementById('mainBarcodeInput');
+                    if (inputEl) inputEl.value = rawText;
+
+                    let cleanedText = rawText.replace(/[-_]/g, " ");
+                    let parts = cleanedText.split(/\s+/);
+                    let scannedId = parts[0].trim().toLowerCase();
+                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
+
+                    let foundAsset = assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                        return dbId === scannedId && dbSub === scannedSub;
+                    }) || assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        return dbId === scannedId;
+                    });
+
+                    if (!foundAsset) {
+                        playBeepSound('error');
+                        showToast('Tidak Terdaftar', `Nomor Aset "${rawText}" tidak ada di Master Data.`, 'warning');
+                        return;
+                    }
+
+                    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+                    const alreadyScannedToday = historyLogs.some(h => {
+                        let hId = String(h.assetId || "").trim().toLowerCase();
+                        let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                        let hDate = String(h.tanggalScan || "").trim();
+                        return hId === String(foundAsset.id).trim().toLowerCase() && 
+                               hSub === String(foundAsset.subNumber || "0").trim().toLowerCase() && 
+                               hDate === todayStr;
+                    });
+
+                    if (alreadyScannedToday) {
+                        playBeepSound('error');
+                        showToast('Aset Sudah Terscan', `Aset ${foundAsset.id} sudah pernah dipindai hari ini.`, 'warning');
+                        return;
+                    }
+
+                    openOpnameModal(foundAsset, 'Scan');
+                })
+                .catch(err => {
+                    html5QrCode.clear();
+                    playBeepSound('error');
+                    showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas dan fokus.', 'warning');
+                });
+        }
+
         function handleEvidencePhoto(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1641,8 +1508,6 @@
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
-            
-            // UBAH BARIS INI: Hanya ambil format Jam, Menit, Detik saja (HH:MM:SS)
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             const lokasiActual = safeGetValue('opnameInputLokasiActual', activeOpnameAsset.lokasi).trim();
@@ -1659,7 +1524,7 @@
                 deskripsi: activeOpnameAsset.deskripsi,
                 lokasiSap: activeOpnameAsset.lokasi,
                 lokasiOpname: lokasiActual,
-                waktuScan: timeStr, // Ini akan terisi jam bersih (contoh: 09:34:08)
+                waktuScan: timeStr,
                 statusAset: statusAset,
                 statusLabel: statusLabel,
                 metodeOpname: metode,
@@ -1738,7 +1603,7 @@
                     <tr>
                         <td colspan="7" class="text-center py-8 text-slate-400">
                             <i class="fa-solid fa-box-open text-2xl mb-1 block"></i>
-                            Tidak ada data aset ditemukan dari database. Silakan klik refresh atau sinkronisasi.
+                            Tidak ada data aset ditemukan dari database.
                         </td>
                     </tr>`;
             } else {
@@ -1816,12 +1681,10 @@
             renderTable();
         }
 
-        // Fungsi pembantu untuk memastikan tanggal selalu berformat DD.MM.YYYY
+        // Format Tanggal Display (DD.MM.YYYY)
         function formatDisplayDate(dateInput) {
             if (!dateInput) return "-";
             let str = String(dateInput).trim();
-            
-            // Jika dari Google Sheets berupa string panjang GMT / ISO Date
             if (str.includes("GMT") || str.includes("T") || str.length > 15) {
                 let d = new Date(str);
                 if (!isNaN(d.getTime())) {
@@ -1929,7 +1792,7 @@
             try {
                 const exportData = historyLogs.map((h, i) => ({
                     "NO": i + 1,
-                    "Tanggal Scan": h.tanggalScan,
+                    "Tanggal Scan": formatDisplayDate(h.tanggalScan),
                     "ID Asset": h.assetId,
                     "Sub-Number": h.subNumber || '0',
                     "Nomor Aset + Sub": `${h.assetId} ${h.subNumber || '0'}`,
@@ -1958,7 +1821,6 @@
             }
         }
 
-        // --- ADD MASTER ASSET ---
         function openAddAssetModal() {
             const modal = document.getElementById('addAssetModal');
             if (modal) modal.classList.remove('hidden');
@@ -2011,21 +1873,20 @@
             document.getElementById('newAssetRoom').value = '';
         }
 
-        // Variabel penampung sementara hasil scan kamera aktif
+        // --- CAMERA STREAM & SCANNER ---
         let scannedPreviewAsset = null;
         let scannedRawBarcode = "";
-        let isBarcodeDetected = false; // Status pengunci scanner
+        let isBarcodeDetected = false;
 
         function openCameraModal() {
             scannedPreviewAsset = null;
             scannedRawBarcode = "";
-            isBarcodeDetected = false; // Reset kunci
+            isBarcodeDetected = false;
 
             safeSetText('previewScanCode', '-');
             const contentBox = document.getElementById('previewAssetContent');
             if (contentBox) contentBox.innerHTML = 'Belum ada barcode yang terpindai. Arahkan kamera ke stiker...';
             
-            // Kembalikan tampilan status standby
             const badgeText = document.getElementById('scannerStatusText');
             const badgeDot = document.getElementById('scannerStatusDot');
             const laser = document.getElementById('laserLine');
@@ -2036,7 +1897,7 @@
             const actionBtn = document.getElementById('btnProcessCameraPreview');
             if (actionBtn) {
                 actionBtn.disabled = true;
-                actionBtn.className = "w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed";
+                actionBtn.className = "flex-1 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed";
             }
 
             const modal = document.getElementById('cameraModal');
@@ -2056,6 +1917,37 @@
             }
         }
 
+        async function resetActiveScanner() {
+            isBarcodeDetected = false;
+            scannedPreviewAsset = null;
+            scannedRawBarcode = "";
+
+            safeSetText('previewScanCode', '-');
+            const contentBox = document.getElementById('previewAssetContent');
+            if (contentBox) contentBox.innerHTML = 'Melanjutkan pemindaian... Arahkan kamera ke barcode.';
+
+            const badgeText = document.getElementById('scannerStatusText');
+            const badgeDot = document.getElementById('scannerStatusDot');
+            const laser = document.getElementById('laserLine');
+            if (badgeText) badgeText.innerText = "Kamera Standby - Arahkan ke Barcode";
+            if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+            if (laser) laser.style.display = "block";
+
+            const btnRescan = document.getElementById('btnRescanCamera');
+            const actionBtn = document.getElementById('btnProcessCameraPreview');
+            if (btnRescan) btnRescan.classList.add('hidden');
+            if (actionBtn) {
+                actionBtn.disabled = true;
+                actionBtn.className = "flex-1 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed";
+            }
+
+            if (html5QrCodeScanner) {
+                try {
+                    await html5QrCodeScanner.resume();
+                } catch (e) {}
+            }
+        }
+
         async function initCameraStream() {
             const overlay = document.getElementById('cameraStatusOverlay');
             if (overlay) {
@@ -2069,40 +1961,6 @@
                 html5QrCodeScanner = new Html5Qrcode("cameraReader");
                 const config = { fps: 15, qrbox: { width: 250, height: 120 } };
         
-                // Fungsi untuk mengulang scan jika dirasa keliru atau belum pas
-                async function resetActiveScanner() {
-                    isBarcodeDetected = false;
-                    scannedPreviewAsset = null;
-                    scannedRawBarcode = "";
-        
-                    safeSetText('previewScanCode', '-');
-                    const contentBox = document.getElementById('previewAssetContent');
-                    if (contentBox) contentBox.innerHTML = 'Melanjutkan pemindaian... Arahkan kamera ke barcode.';
-        
-                    const badgeText = document.getElementById('scannerStatusText');
-                    const badgeDot = document.getElementById('scannerStatusDot');
-                    const laser = document.getElementById('laserLine');
-                    if (badgeText) badgeText.innerText = "Kamera Standby - Arahkan ke Barcode";
-                    if (badgeDot) badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                    if (laser) laser.style.display = "block";
-        
-                    const btnRescan = document.getElementById('btnRescanCamera');
-                    const actionBtn = document.getElementById('btnProcessCameraPreview');
-                    if (btnRescan) btnRescan.classList.add('hidden');
-                    if (actionBtn) {
-                        actionBtn.disabled = true;
-                        actionBtn.className = "w-1/2 px-4 py-2.5 bg-slate-300 text-slate-500 text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-not-allowed";
-                    }
-        
-                    // Resume kamera agar jalan lagi
-                    if (html5QrCodeScanner) {
-                        try {
-                            await html5QrCodeScanner.resume();
-                        } catch (e) {}
-                    }
-                }
-        
-                // Di dalam initCameraStream, bagian qrCodeSuccessCallback diubah menjadi:
                 const qrCodeSuccessCallback = async (decodedText) => {
                     if (isBarcodeDetected) return;
         
@@ -2114,7 +1972,6 @@
                     let scannedId = parts[0].trim().toLowerCase();
                     let scannedSub = (parts[1] || "0").trim().toLowerCase();
         
-                    // Cek apakah aset ADA DI DATABASE MASTER
                     let foundAsset = assets.find(a => {
                         let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                         let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -2124,14 +1981,12 @@
                         return dbId === scannedId;
                     });
         
-                    // JIKA ASET TIDAK DITEMUKAN DI DATABASE, JANGAN BERHENTI SCAN (biar tidak salah kunci)
                     if (!foundAsset) {
                         playBeepSound('error');
-                        showToast('Tidak Terdaftar', `Barcode ${scannedId} tidak ditemukan di database. Silakan scan ulang.`, 'warning');
-                        return; // Keluar dari fungsi agar kamera tetap lanjut menscan barcode lain
+                        showToast('Tidak Terdaftar', `Barcode ${scannedId} tidak ditemukan di database.`, 'warning');
+                        return;
                     }
         
-                    // JIKA ASET DITEMUKAN, BARU KUNCI KAMERA DAN BERHENTI MENSCAN
                     isBarcodeDetected = true; 
                     playBeepSound('success');
                     scannedRawBarcode = rawText;
@@ -2169,10 +2024,10 @@
                         `;
                     }
         
-                    if (btnRescan) btnRescan.classList.remove('flex'); // Munculkan tombol scan ulang
+                    if (btnRescan) btnRescan.classList.remove('hidden');
                     if (actionBtn) {
                         actionBtn.disabled = false;
-                        actionBtn.className = "w-1/2 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer animate-bounce";
+                        actionBtn.className = "flex-1 px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer animate-bounce";
                     }
                 };
         
@@ -2190,7 +2045,7 @@
                         <div class="text-center p-3 text-rose-400 space-y-1">
                             <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i>
                             <p class="text-xs font-bold">Gagal Mengakses Kamera</p>
-                            <p class="text-[10px] text-slate-300">Pastikan izin kamera di browser sudah diaktifkan dan gunakan HTTPS.</p>
+                            <p class="text-[10px] text-slate-300">Pastikan izin kamera di browser sudah diaktifkan.</p>
                         </div>
                     `;
                 }
@@ -2221,7 +2076,6 @@
 
             closeCameraModal();
 
-            // Cek duplikat harian sebelum buka modal verifikasi
             const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
             const alreadyScannedToday = historyLogs.some(h => {
                 let hId = String(h.assetId || "").trim().toLowerCase();
@@ -2267,7 +2121,6 @@
 
             const selectedBranch = safeGetValue('branchSelector', 'ALL');
             
-            // 1. Populate dropdown ruangan rekap secara dinamis berdasarkan cabang yang sedang aktif
             if (roomSelect) {
                 const currentRoomVal = roomSelect.value;
                 const scopedForRooms = selectedBranch === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(a.cabang));
@@ -2286,7 +2139,6 @@
 
             const selectedRoom = safeGetValue('recapRoomFilter', 'ALL');
 
-            // 2. Filter data berdasarkan Cabang DAN Ruangan yang dipilih
             const scopedAssets = assets.filter(a => {
                 const matchBranch = selectedBranch === 'ALL' || a.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(a.cabang);
                 const matchRoom = selectedRoom === 'ALL' || String(a.lokasi || "").trim().toUpperCase() === selectedRoom;
@@ -2328,7 +2180,7 @@
             branches.forEach(b => {
                 const branchLabel = branchNames[b] || b;
                 const bAssets = scopedAssets.filter(a => a.cabang.startsWith(b) || b.startsWith(a.cabang));
-                if (bAssets.length === 0) return; // Sembunyikan cabang jika tidak ada aset di ruangan yang dipilih
+                if (bAssets.length === 0) return;
 
                 const branchTotal = bAssets.length;
                 const branchScanned = bAssets.filter(a => scannedAssetIds.has(a.id)).length;
@@ -2455,32 +2307,14 @@
             }
         }
 
-        function requestClearHistory() {
-            askConfirm(
-                'Hapus Riwayat Stock Opname',
-                'Apakah Anda yakin ingin membersihkan seluruh log riwayat pemindaian ?',
-                () => {
-                    historyLogs = [];
-                    renderHistoryTable();
-                    renderKPIs();
-                    renderRecapView();
-                    showToast('Log Dibersihkan', 'Riwayat pemindaian telah dikosongkan.', 'info');
-                }
-            );
-        }
-
         function populateRoomFilterDropdown() {
             const selectEl = document.getElementById('roomFilter');
             if (!selectEl) return;
         
-            // Simpan nilai yang sedang dipilih saat ini agar tidak tereset jika ada
             const currentSelected = selectEl.value;
-        
-            // Ambil daftar ruangan unik dari data assets
             const uniqueRooms = [...new Set(assets.map(a => String(a.lokasi || "").trim().toUpperCase()))].filter(Boolean);
-            uniqueRooms.sort(); // Urutkan sesuai abjad
+            uniqueRooms.sort();
         
-            // Buat HTML opsi dropdown
             let html = '<option value="ALL">Semua Ruangan</option>';
             uniqueRooms.forEach(room => {
                 html += `<option value="${room}">${room}</option>`;
@@ -2488,13 +2322,11 @@
         
             selectEl.innerHTML = html;
         
-            // Kembalikan pilihan jika sebelumnya sudah dipilih
             if (uniqueRooms.includes(currentSelected)) {
                 selectEl.value = currentSelected;
             }
         }
 
-        // Fungsi Kompresi Foto Otomatis agar Ukurannya Sangat Kecil
         function handleCompressedPhoto(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -2509,7 +2341,6 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
 
-                    // Tentukan batas maksimal dimensi gambar (lebar maks 600px)
                     const MAX_WIDTH = 600;
                     const MAX_HEIGHT = 600;
                     let width = img.width;
@@ -2531,16 +2362,10 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Ubah ke format JPEG dengan kualitas 0.6 (60%) agar file sangat kecil
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-
-                    // Simpan ke variabel global aktif
                     activeEvidencePhoto = compressedBase64;
-
-                    // Hitung perkiraan ukuran string Base64 dalam Kilobyte (KB)
                     const sizeInKb = Math.round((compressedBase64.length * 3) / 4 / 1024);
 
-                    // Tampilkan preview
                     const previewImg = document.getElementById('temuanPreviewImg');
                     const previewContainer = document.getElementById('temuanPreviewContainer');
                     const btnRemove = document.getElementById('btnRemoveFoto');
@@ -2569,10 +2394,9 @@
 
         function selectLiveCameraScan() {
             closeScanMethodModal();
-            openCameraModal(); // Membuka live scanner kamera utama yang sudah kita buat sebelumnya
+            openCameraModal();
         }
 
-        // Fitur opsional tambahan: Membaca barcode dari hasil jepretan foto HP/Galeri
         function handleImageBarcodeUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -2580,12 +2404,10 @@
             closeScanMethodModal();
             showToast('Memindai Gambar', 'Membaca barcode dari foto...', 'info');
 
-            // Memanfaatkan html5Qrcode untuk memindai file gambar yang diunggah
-            const html5QrCode = new Html5Qrcode("cameraReader"); // elemen penampung sementara
+            const html5QrCode = new Html5Qrcode("cameraReader");
             html5QrCode.scanFile(file, true)
                 .then(decodedText => {
                     html5QrCode.clear();
-                    // Masukkan hasil scan ke input utama dan langsung proses verifikasi
                     const inputEl = document.getElementById('mainBarcodeInput');
                     if (inputEl) inputEl.value = decodedText;
                     playBeepSound('success');
@@ -2598,20 +2420,16 @@
                 });
         }
 
-        // Cek dan ambil URL dari environment server Vercel secara otomatis jika belum ada di localStorage
         function loadServerEnvironmentConfig() {
             if (!googleSheetsWebhookUrl) {
-                fetch('/api/config') // atau endpoint serverless Vercel kamu
+                fetch('/api/config')
                     .then(res => res.json())
                     .then(data => {
                         if (data && data.gasUrl) {
                             googleSheetsWebhookUrl = data.gasUrl;
-                            console.log("URL Web App dimuat otomatis dari Environment Vercel.");
                         }
                     })
-                    .catch(err => {
-                        console.log("Menggunakan konfigurasi manual dari browser.");
-                    });
+                    .catch(err => {});
             }
         }
 
