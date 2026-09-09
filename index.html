@@ -982,6 +982,22 @@
             return el ? el.value : fallback;
         }
 
+        function loadLogsFromServer() {
+            fetch(`${PROXY_API_URL}?action=getLogs`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success" && Array.isArray(res.data)) {
+                        historyLogs = res.data;
+                        renderKPIs();
+                        renderHistoryTable();
+                        renderRecapView();
+                    }
+                })
+                .catch(err => {
+                    console.log("Background sync error:", err);
+                });
+        }
+
         // --- BACKEND DATABASE INTEGRATION ---
         function fetchDataFromBackend() {
             showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
@@ -2485,14 +2501,13 @@
         window.onload = function () {
             // Jalankan sinkronisasi otomatis setiap 8 detik di semua device
             setInterval(() => {
-                // Jangan sinkronisasi otomatis jika modal sedang dibuka (sedang mengetik/proses)
                 const modal = document.getElementById('opnameModal');
                 if (!modal || modal.classList.contains('hidden')) {
                     loadLogsFromServer();
                 }
-            }, 8000); // 8000 milidetik = 8 detik
+            }, 8000); 
+
             fetchDataFromBackend();
-            loadServerEnvironmentConfig(); 
             
             renderKPIs();
             renderTable();
