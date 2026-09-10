@@ -1936,19 +1936,27 @@
                     // Di dalam fungsi renderHistoryTable()
                     let fotoHtml = `<span class="text-slate-400 italic text-[11px]">-</span>`;
                     if (item.asetTemuan) {
-                        // Cek apakah data berupa string Base64 langsung atau URL gambar lama
                         let imgSrc = item.asetTemuan;
                         
-                        fotoHtml = `
-                            <div class="flex items-center justify-center">
-                                <button onclick="viewPhotoDetail('${imgSrc}')" title="Klik untuk memperbesar foto temuan" class="relative group p-0.5 rounded-lg border border-rose-300 hover:border-rose-500 shadow-xs bg-white transition">
-                                    <img src="${imgSrc}" alt="Temuan" class="w-9 h-9 object-cover rounded">
-                                    <div class="absolute inset-0 bg-black/40 rounded opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] transition">
-                                        <i class="fa-solid fa-magnifying-glass-plus"></i>
-                                    </div>
-                                </button>
-                            </div>
-                        `;
+                        if (imgSrc.startsWith("http")) {
+                            // Jika berupa link Google Drive
+                            fotoHtml = `
+                                <div class="flex items-center justify-center">
+                                    <a href="${imgSrc}" target="_blank" title="Buka foto di Google Drive" class="px-2.5 py-1 bg-astra-50 hover:bg-astra-100 text-astra-700 border border-astra-200 rounded-lg text-[11px] font-bold transition flex items-center gap-1">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Lihat Drive
+                                    </a>
+                                </div>
+                            `;
+                        } else {
+                            // Jika berupa Base64 lama
+                            fotoHtml = `
+                                <div class="flex items-center justify-center">
+                                    <button onclick="viewPhotoDetail('${imgSrc}')" class="p-0.5 rounded-lg border border-rose-300 bg-white">
+                                        <img src="${imgSrc}" alt="Temuan" class="w-9 h-9 object-cover rounded">
+                                    </button>
+                                </div>
+                            `;
+                        }
                     }
 
                     const tr = document.createElement('tr');
