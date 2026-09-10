@@ -2055,7 +2055,10 @@
             .then(res => res.json())
             .then(res => {
                 if (res.status === "success") {
+                    // Hapus duplikat dari array lokal jika sempat tersisa, lalu tambahkan yang baru
+                    assets = assets.filter(a => !(String(a.id) === String(id) && String(a.subNumber || '0') === String(sub || '0')));
                     assets.unshift(newAsset);
+                    
                     closeAddAssetModal();
                     showToast('Berhasil Ditambahkan!', `Aset ${id} berhasil tersimpan ke Google Spreadsheet.`, 'success');
 
