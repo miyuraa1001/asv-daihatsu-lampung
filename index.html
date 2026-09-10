@@ -1574,7 +1574,7 @@
                 let parts = cleanedText.split(/\s+/);
                 let scannedId = parts[0].trim().toLowerCase();
                 let scannedSub = (parts[1] || "0").trim().toLowerCase();
-
+        
                 activeOpnameAsset = assets.find(a => {
                     let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                     let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -1583,49 +1583,70 @@
                     let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                     return dbId === scannedId;
                 });
-
+        
                 if (!activeOpnameAsset) {
                     showToast('Gagal Simpan', 'Data aset tidak valid atau belum dipilih.', 'error');
                     return;
                 }
             }
-
+        
             const currentAssetId = String(activeOpnameAsset.id || activeOpnameAsset["ID Asset"] || "").trim();
             const currentSubNumber = String(activeOpnameAsset.subNumber || activeOpnameAsset["Sub-Number"] || "0").trim();
-
-            // 1. CEK APAKAH ASET SUDAH PERNAH DISCAN (ADA DI RIWAYAT)
+        
+            // Ambil nilai input dari form modal
+            const statusAset = safeGetValue('opnameInputStatusAset', 'Baik');
+            const statusLabel = safeGetValue('opnameInputStatusLabel', 'Baik');
+            const keterangan = safeGetValue('opnameInputKeterangan', '').trim();
+        
+            // --- VALIDASI KETAT: JIKA RUSAK RINGAN / BERAT, WAJIB FOTO & KETERANGAN ---
+            const isAsetRusak = (statusAset === 'Rusak Ringan' || statusAset === 'Rusak Berat');
+            const isLabelRusak = (statusLabel === 'Rusak'); // Sesuai pilihan dropdown "Rusak / Sobek / Pudar"
+        
+            if (isAsetRusak || isLabelRusak) {
+                // Cek apakah foto belum ada atau keterangan kosong
+                if (!activeEvidencePhoto) {
+                    playBeepSound('error');
+                    showToast('Foto Wajib Diisi!', 'Karena kondisi aset/label rusak, Anda wajib mengambil/melampirkan foto bukti.', 'warning');
+                    return;
+                }
+                if (!keterangan) {
+                    playBeepSound('error');
+                    showToast('Keterangan Wajib Diisi!', 'Harap isi keterangan tambahan mengenai kerusakan atau masalah label.', 'warning');
+                    document.getElementById('opnameInputKeterangan').focus();
+                    return;
+                }
+            }
+            // ------------------------------------------------------------------------
+        
+            // Cek apakah aset sudah pernah discan hari ini
             const alreadyScanned = historyLogs.some(h => {
                 let hId = String(h.assetId || "").trim();
                 let hSub = String(h.subNumber || "0").trim();
                 return hId.toLowerCase() === currentAssetId.toLowerCase() && hSub.toLowerCase() === currentSubNumber.toLowerCase();
             });
-
+        
             if (alreadyScanned) {
                 closeOpnameModal();
-                showToast('Aset Sudah Discan!', `Aset ID ${currentAssetId} (Sub: ${currentSubNumber}) sudah tercatat dalam riwayat opname. Hapus terlebih dahulu dari riwayat jika ingin melakukan scan ulang.`, 'warning');
+                showToast('Aset Sudah Discan!', `Aset ID ${currentAssetId} sudah tercatat dalam riwayat opname.`, 'warning');
                 playBeepSound('error');
                 return;
             }
-
-            // Amankan tombol simpan agar tidak bisa di-double click (disable sementara)
+        
             const saveBtn = document.querySelector('button[onclick="saveOpnameVerification()"]');
             if (saveBtn) {
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Sedang Menyimpan ke Database...`;
             }
-
-            showToast('Menyimpan...', 'Mohon tunggu, sedang mengirim data ke database Google Sheets...', 'info');
-
+        
+            showToast('Menyimpan...', 'Mohon tunggu, sedang mengirim data ke database...', 'info');
+        
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
+        
             const lokasiActual = safeGetValue('opnameInputLokasiActual', activeOpnameAsset.lokasi).trim();
             const metode = safeGetValue('opnameInputMetode', activeOpnameMethod);
-            const statusAset = safeGetValue('opnameInputStatusAset', 'Baik');
-            const statusLabel = safeGetValue('opnameInputStatusLabel', 'Baik');
-            const keterangan = safeGetValue('opnameInputKeterangan', '').trim();
-
+        
             const newHistoryLog = {
                 tanggalScan: dateStr,
                 assetId: currentAssetId,
@@ -1639,9 +1660,9 @@
                 statusLabel: statusLabel,
                 metodeOpname: metode,
                 asetTemuan: activeEvidencePhoto || null,
-                keterangan: keterangan
+                keterangan: keterangan || "-"
             };
-
+        
             // Kirim ke server lewat Proxy Vercel
             fetch(PROXY_API_URL, {
                 method: 'POST',
@@ -1650,16 +1671,15 @@
             })
             .then(res => res.json())
             .then(res => {
-                // Kembalikan tombol seperti semula
                 if (saveBtn) {
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Simpan Log Opname`;
                 }
-
+        
                 closeOpnameModal();
-                showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil tersimpan ke database.`, 'success');
+                showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil tersimpan.`, 'success');
                 playBeepSound('success');
-
+        
                 historyLogs.unshift(newHistoryLog);
                 renderKPIs();
                 renderHistoryTable();
@@ -1674,8 +1694,7 @@
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Simpan Log Opname`;
                 }
-
-                console.log("Catatan: Data terkirim ke server.");
+        
                 closeOpnameModal();
                 historyLogs.unshift(newHistoryLog);
                 renderKPIs();
