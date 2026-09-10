@@ -272,18 +272,12 @@
                             <span class="truncate">Kamera Web</span>
                         </button>
 
-                        <!-- TOMBOL ALTERNATIF: Kamera Bawaan HP Langsung -->
-                        <label class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs px-2.5 sm:px-4 py-3 rounded-lg flex items-center justify-center space-x-1 sm:space-x-1.5 transition shadow-md cursor-pointer text-center">
-                            <i class="fa-solid fa-mobile-screen-button"></i>
-                            <span class="truncate">Kamera HP</span>
-                            <!-- capture="environment" langsung memicu kamera belakang HP -->
-                            <input type="file" accept="image/*" capture="environment" onchange="handleNativeCameraScan(event)" class="hidden">
-                        </label>
-
-                        <label class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs px-2.5 sm:px-4 py-3 rounded-lg flex items-center justify-center space-x-1 sm:space-x-1.5 transition shadow-md cursor-pointer text-center">
-                            <i class="fa-solid fa-image"></i>
-                            <span class="truncate">Foto</span>
-                            <input type="file" id="fileScanInput" accept="image/*" onchange="handleFileScan(event)" class="hidden">
+                        <!-- Tombol Kamera HP / Live Camera murni tanpa celah galeri -->
+                        <label class="cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Kamera HP</span>
+                            <!-- Atribut capture="environment" memaksa buka kamera langsung, tanpa pilihan file galeri -->
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleLiveCameraScan(event)">
                         </label>
 
                         <button onclick="triggerOpnameLookup('Manual')" class="bg-daihatsu-600 hover:bg-daihatsu-700 active:bg-daihatsu-800 text-white font-bold text-xs px-3 sm:px-5 py-3 rounded-lg flex items-center justify-center space-x-1 sm:space-x-1.5 transition shadow-md shadow-daihatsu-600/30">
@@ -711,7 +705,7 @@
                     <div class="flex items-center justify-between mb-2">
                         <label class="font-bold text-slate-800 flex items-center gap-1.5">
                             <i class="fa-solid fa-camera text-daihatsu-600"></i>
-                            <span>Aset Temuan / Bukti Kerusakan (Wajib jika ada temuan)</span>
+                            <span>Aset Temuan / Bukti Kerusakan (Opsional)</span>
                         </label>
                         <span id="temuanBadge" class="text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">Opsional</span>
                     </div>
@@ -719,19 +713,12 @@
                     
                     <div class="flex flex-col sm:flex-row items-center gap-3">
                         <div class="flex flex-wrap items-center gap-2 w-full">
-                            <!-- TOMBOL 1: AMBIL FOTO LANGSUNG DARI KAMERA HP -->
-                            <label class="cursor-pointer bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-xs transition flex-1">
+                            <!-- HANYA 1 TOMBOL: AMBIL FOTO LANGSUNG DARI KAMERA HP (TANPA GALERI) -->
+                            <label class="cursor-pointer bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 shadow-xs transition w-full sm:w-auto flex-1">
                                 <i class="fa-solid fa-camera-retro"></i>
-                                <span>Buka Kamera HP</span>
-                                <!-- capture="environment" langsung memicu kamera belakang -->
+                                <span>Buka Kamera HP (Live Camera)</span>
+                                <!-- Atribut capture="environment" mengunci langsung ke kamera belakang tanpa opsi galeri -->
                                 <input type="file" id="opnameCameraInput" accept="image/*" capture="environment" onchange="handleCompressedPhoto(event)" class="hidden">
-                            </label>
-
-                            <!-- TOMBOL 2: PILIH DARI GALERI (OPSIONAL) -->
-                            <label class="cursor-pointer bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-xs transition flex-1">
-                                <i class="fa-solid fa-image text-astra-600"></i>
-                                <span>Dari Galeri</span>
-                                <input type="file" id="opnameGalleryInput" accept="image/*" onchange="handleCompressedPhoto(event)" class="hidden">
                             </label>
                             
                             <button type="button" id="btnRemoveFoto" onclick="clearEvidencePhoto()" class="hidden text-rose-600 hover:text-rose-700 font-semibold text-xs px-2 py-2">
@@ -1592,8 +1579,31 @@
                 }
             }
 
-            // AMANKAN ID ASET DI SINI SEBELUM PROSES FETCH BERJALAN
-            const currentAssetId = activeOpnameAsset.id;
+            const currentAssetId = String(activeOpnameAsset.id || activeOpnameAsset["ID Asset"] || "").trim();
+            const currentSubNumber = String(activeOpnameAsset.subNumber || activeOpnameAsset["Sub-Number"] || "0").trim();
+
+            // 1. CEK APAKAH ASET SUDAH PERNAH DISCAN (ADA DI RIWAYAT)
+            const alreadyScanned = historyLogs.some(h => {
+                let hId = String(h.assetId || "").trim();
+                let hSub = String(h.subNumber || "0").trim();
+                return hId.toLowerCase() === currentAssetId.toLowerCase() && hSub.toLowerCase() === currentSubNumber.toLowerCase();
+            });
+
+            if (alreadyScanned) {
+                closeOpnameModal();
+                showToast('Aset Sudah Discan!', `Aset ID ${currentAssetId} (Sub: ${currentSubNumber}) sudah tercatat dalam riwayat opname. Hapus terlebih dahulu dari riwayat jika ingin melakukan scan ulang.`, 'warning');
+                playBeepSound('error');
+                return;
+            }
+
+            // Amankan tombol simpan agar tidak bisa di-double click (disable sementara)
+            const saveBtn = document.querySelector('button[onclick="saveOpnameVerification()"]');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Sedang Menyimpan ke Database...`;
+            }
+
+            showToast('Menyimpan...', 'Mohon tunggu, sedang mengirim data ke database Google Sheets...', 'info');
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
@@ -1608,10 +1618,10 @@
             const newHistoryLog = {
                 tanggalScan: dateStr,
                 assetId: currentAssetId,
-                subNumber: activeOpnameAsset.subNumber || '0',
-                cabang: activeOpnameAsset.cabang,
-                deskripsi: activeOpnameAsset.deskripsi,
-                lokasiSap: activeOpnameAsset.lokasi,
+                subNumber: currentSubNumber,
+                cabang: activeOpnameAsset.cabang || activeOpnameAsset["Business Area"] || "",
+                deskripsi: activeOpnameAsset.deskripsi || activeOpnameAsset["Asset Description"] || "",
+                lokasiSap: activeOpnameAsset.lokasi || activeOpnameAsset["Location"] || "",
                 lokasiOpname: lokasiActual,
                 waktuScan: timeStr,
                 statusAset: statusAset,
@@ -1621,9 +1631,7 @@
                 keterangan: keterangan
             };
 
-            showToast('Menyimpan...', 'Mengirim data ke database Google Sheets...', 'info');
-
-            // Kirim ke server lewat Proxy Vercel agar mendapat respons pasti
+            // Kirim ke server lewat Proxy Vercel
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1631,9 +1639,13 @@
             })
             .then(res => res.json())
             .then(res => {
+                // Kembalikan tombol seperti semula
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Simpan Log Opname`;
+                }
+
                 closeOpnameModal();
-                
-                // Gunakan currentAssetId yang aman
                 showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil tersimpan ke database.`, 'success');
                 playBeepSound('success');
 
@@ -1647,14 +1659,17 @@
                 }
             })
             .catch(err => {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Simpan Log Opname`;
+                }
+
                 console.log("Catatan: Data terkirim ke server.");
                 closeOpnameModal();
                 historyLogs.unshift(newHistoryLog);
                 renderKPIs();
                 renderHistoryTable();
                 renderRecapView();
-                
-                // Gunakan currentAssetId yang aman
                 showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil dicatat.`, 'success');
             });
         }
@@ -1770,6 +1785,15 @@
             let endPage = Math.min(totalPages, startPage + 2);
             if (endPage - startPage < 2) startPage = Math.max(1, endPage - 2);
 
+            // Contoh cuplikan di dalam fungsi render tabel aset
+            // Pastikan di bagian baris (row) tabel master aset ditambahkan kolom tombol hapus:
+            let actionCell = `<td class="px-3 py-2 text-center">
+                <button onclick="deleteMasterAsset('${asset.id}', '${asset.subNumber || '0'}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 mx-auto" title="Hapus Aset dari Master">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Hapus</span>
+                </button>
+            </td>`;
+
             for (let p = startPage; p <= endPage; p++) {
                 if (p === currentPage) {
                     html += `<button class="px-2.5 py-1 text-xs rounded-lg bg-astra-600 text-white font-bold transition">${p}</button>`;
@@ -1785,6 +1809,49 @@
             `;
 
             container.innerHTML = html;
+        }
+
+        function deleteMasterAsset(assetId, subNumber) {
+            askConfirm(
+                'Hapus Aset dari Database',
+                `Apakah Anda yakin ingin menghapus Aset ID ${assetId} (Sub: ${subNumber})? Data akan terhapus permanen dari Google Spreadsheet.`,
+                () => {
+                    showToast('Menghapus...', 'Menghapus aset dari database...', 'info');
+
+                    // Kirim request POST ke Proxy Vercel
+                    fetch(PROXY_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: "deleteMasterAsset",
+                            assetId: assetId,
+                            subNumber: subNumber
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            // Hapus dari array lokal setelah database sukses menghapusnya
+                            assets = assets.filter(a => {
+                                let idMatch = String(a.id || a["ID Asset"] || "").trim() === String(assetId).trim();
+                                let subMatch = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim() === String(subNumber || "0").trim();
+                                return !(idMatch && subMatch);
+                            });
+
+                            renderTable();
+                            renderKPIs();
+                            
+                            showToast('Berhasil Dihapus!', `Aset ${assetId} telah dihapus permanen dari Google Spreadsheet.`, 'success');
+                        } else {
+                            showToast('Gagal Hapus', res.message || 'Server gagal menghapus data dari database.', 'warning');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Delete Master Error:", err);
+                        showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server untuk menghapus aset.', 'warning');
+                    });
+                }
+            );
         }
 
         function changePage(page) {
