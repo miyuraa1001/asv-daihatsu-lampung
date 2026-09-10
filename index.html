@@ -2032,11 +2032,7 @@
                 return;
             }
 
-            const exists = assets.some(a => a.id === id && a.subNumber === sub);
-            if (exists) {
-                showToast('ID Sudah Terdaftar', `Aset dengan ID ${id} (Sub: ${sub}) sudah ada dalam Master Aset.`, 'warning');
-                return;
-            }
+            showToast('Menyimpan...', 'Menambahkan aset baru ke database...', 'info');
 
             const newAsset = {
                 id: id,
@@ -2047,19 +2043,39 @@
                 lokasi: room
             };
 
-            assets.unshift(newAsset);
-            closeAddAssetModal();
-            showToast('Aset Ditambahkan', `Aset ${id} berhasil didaftarkan.`, 'success');
+            // Kirim ke database lewat Proxy Vercel
+            fetch(PROXY_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "addMasterAsset",
+                    data: newAsset
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    assets.unshift(newAsset);
+                    closeAddAssetModal();
+                    showToast('Berhasil Ditambahkan!', `Aset ${id} berhasil tersimpan ke Google Spreadsheet.`, 'success');
 
-            renderKPIs();
-            renderTable();
-            renderRecapView();
+                    renderKPIs();
+                    renderTable();
+                    renderRecapView();
 
-            document.getElementById('newAssetId').value = '';
-            document.getElementById('newAssetDesc').value = '';
-            document.getElementById('newAssetRoom').value = '';
+                    document.getElementById('newAssetId').value = '';
+                    document.getElementById('newAssetDesc').value = '';
+                    document.getElementById('newAssetRoom').value = '';
+                } else {
+                    showToast('Gagal Simpan', res.message || 'Server gagal menambahkan aset.', 'warning');
+                }
+            })
+            .catch(err => {
+                console.error("Add Asset Error:", err);
+                showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server.', 'warning');
+            });
         }
-
+        
         // --- CAMERA STREAM & SCANNER ---
         let scannedPreviewAsset = null;
         let scannedRawBarcode = "";
