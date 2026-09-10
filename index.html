@@ -1884,6 +1884,26 @@
             
             return str.replace(/\//g, '.');
         }
+
+        // Fungsi khusus untuk menangani Waktu Scan agar tidak berubah jadi tahun
+        function formatDisplayTime(timeInput) {
+            if (!timeInput) return "-";
+            let str = String(timeInput).trim();
+            
+            // Jika spreadsheet membaca waktu mentah dan mengandung string GMT / ISO date aneh
+            if (str.includes("GMT") || str.includes("193") || str.includes("197")) {
+                let d = new Date(str);
+                if (!isNaN(d.getTime())) {
+                    let hours = String(d.getHours()).padStart(2, '0');
+                    let mins = String(d.getMinutes()).padStart(2, '0');
+                    let secs = String(d.getSeconds()).padStart(2, '0');
+                    return `${hours}:${mins}:${secs}`;
+                }
+            }
+            
+            // Jika bentuknya angka desimal atau string biasa, bersihkan dan tampilkan apa adanya
+            return str.replace(/[:]/g, '.');
+        }
         
         // --- TABLE 2 HISTORY RENDERING ---
         function renderHistoryTable() {
@@ -1969,13 +1989,13 @@
                         <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
                         <td class="py-2.5 px-3 font-mono text-slate-600 bg-slate-50/60">${item.lokasiSap}</td>
                         <td class="py-2.5 px-3 font-mono font-bold ${item.lokasiSap !== item.lokasiOpname ? 'text-amber-700 bg-amber-50' : 'text-slate-800'}">${item.lokasiOpname}</td>
-                        <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${item.waktuScan || '-'}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${asetBadge}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${labelBadge}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${metodeBadge}</td>
                         <td class="py-2.5 px-3 text-center whitespace-nowrap">${fotoHtml}</td>
                         <td class="py-2.5 px-3 text-slate-600 max-w-xs truncate" title="${item.keterangan || '-'}">${item.keterangan || '-'}</td>
                         <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                        <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${formatDisplayTime(item.waktuScan)}</td>
                             <button onclick="deleteSingleLog('${item.assetId}', '${item.subNumber || '0'}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Hapus log ini">
                                 <i class="fa-solid fa-trash-can text-xs"></i>
                             </button>
