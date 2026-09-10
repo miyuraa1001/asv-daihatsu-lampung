@@ -1863,22 +1863,27 @@
             renderTable();
         }
 
-        // Format Tanggal Display (DD.MM.YYYY)
+        // Format Tanggal Display (Menghapus GMT / Zona Waktu)
         function formatDisplayDate(dateInput) {
             if (!dateInput) return "-";
             let str = String(dateInput).trim();
-            if (str.includes("GMT") || str.includes("T") || str.length > 15) {
+            
+            // Jika mengandung teks panjang atau GMT, ambil bagian depannya saja
+            if (str.includes("GMT") || str.includes("00:00:00")) {
+                let cleanStr = str.split("00:00:00")[0].trim();
+                if (cleanStr) return cleanStr;
+            }
+            
+            if (str.length > 15 && (str.includes("T") || str.includes("GMT"))) {
                 let d = new Date(str);
                 if (!isNaN(d.getTime())) {
-                    let day = String(d.getDate()).padStart(2, '0');
-                    let month = String(d.getMonth() + 1).padStart(2, '0');
-                    let year = d.getFullYear();
-                    return `${day}.${month}.${year}`;
+                    const options = { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' };
+                    return d.toLocaleDateString('en-US', options); // Menghasilkan format seperti: Mon Oct 09 2017
                 }
             }
-            return str.replace(/\//g, '.');
+            return str;
         }
-
+        
         // --- TABLE 2 HISTORY RENDERING ---
         function renderHistoryTable() {
             const searchVal = safeGetValue('historySearchInput').toLowerCase().trim();
@@ -1951,7 +1956,7 @@
                         <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
                         <td class="py-2.5 px-3 font-mono text-slate-600 bg-slate-50/60">${item.lokasiSap}</td>
                         <td class="py-2.5 px-3 font-mono font-bold ${item.lokasiSap !== item.lokasiOpname ? 'text-amber-700 bg-amber-50' : 'text-slate-800'}">${item.lokasiOpname}</td>
-                        <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${item.waktuScan}</td>
+                        <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${item.waktuScan || '-'}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${asetBadge}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${labelBadge}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${metodeBadge}</td>
