@@ -1863,25 +1863,26 @@
             renderTable();
         }
 
-        // Format Tanggal Display (Menghapus GMT / Zona Waktu)
+        // Format Tanggal Display (Konversi mm/dd/yyyy dari Spreadsheet menjadi dd.mm.yyyy)
         function formatDisplayDate(dateInput) {
             if (!dateInput) return "-";
             let str = String(dateInput).trim();
             
-            // Jika mengandung teks panjang atau GMT, ambil bagian depannya saja
+            // Jika ada waktu GMT / 00:00:00, potong ambil tanggalnya saja
             if (str.includes("GMT") || str.includes("00:00:00")) {
-                let cleanStr = str.split("00:00:00")[0].trim();
-                if (cleanStr) return cleanStr;
+                str = str.split("00:00:00")[0].trim();
+            }
+
+            // Jika formatnya sudah Date object atau string tanggal standar
+            let d = new Date(str);
+            if (!isNaN(d.getTime())) {
+                let day = String(d.getDate()).padStart(2, '0');
+                let month = String(d.getMonth() + 1).padStart(2, '0');
+                let year = d.getFullYear();
+                return `${day}.${month}.${year}`;
             }
             
-            if (str.length > 15 && (str.includes("T") || str.includes("GMT"))) {
-                let d = new Date(str);
-                if (!isNaN(d.getTime())) {
-                    const options = { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' };
-                    return d.toLocaleDateString('en-US', options); // Menghasilkan format seperti: Mon Oct 09 2017
-                }
-            }
-            return str;
+            return str.replace(/\//g, '.');
         }
         
         // --- TABLE 2 HISTORY RENDERING ---
