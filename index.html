@@ -1749,10 +1749,18 @@
                         <td class="py-3 px-3 sm:px-4 text-slate-500 font-mono text-[11px]">${item.capitalizedOn || '-'}</td>
                         <td class="py-3 px-3 sm:px-4"><span class="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded font-mono text-[11px]">${item.lokasi}</span></td>
                         <td class="py-3 px-3 sm:px-4 text-center">
-                            <button onclick="fillBarcodeInput('${item.id}'); triggerOpnameLookup('Manual');" class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-2.5 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
-                                <i class="fa-solid fa-clipboard-check"></i>
-                                <span>Opname</span>
-                            </button>
+                            <div class="flex items-center justify-center gap-1.5">
+                                <!-- Tombol Opname Asli -->
+                                <button onclick="fillBarcodeInput('${item.id}'); triggerOpnameLookup('Manual');" class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-2.5 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                    <span>Opname</span>
+                                </button>
+                                
+                                <!-- Tombol Hapus Aset dari Master & Database -->
+                                <button onclick="deleteMasterAsset('${item.id}', '${item.subNumber || '0'}')" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition flex items-center justify-center" title="Hapus Aset">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1784,15 +1792,6 @@
             let startPage = Math.max(1, currentPage - 1);
             let endPage = Math.min(totalPages, startPage + 2);
             if (endPage - startPage < 2) startPage = Math.max(1, endPage - 2);
-
-            // Contoh cuplikan di dalam fungsi render tabel aset
-            // Pastikan di bagian baris (row) tabel master aset ditambahkan kolom tombol hapus:
-            let actionCell = `<td class="px-3 py-2 text-center">
-                <button onclick="deleteMasterAsset('${asset.id}', '${asset.subNumber || '0'}')" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 mx-auto" title="Hapus Aset dari Master">
-                    <i class="fa-solid fa-trash-can"></i>
-                    <span>Hapus</span>
-                </button>
-            </td>`;
 
             for (let p = startPage; p <= endPage; p++) {
                 if (p === currentPage) {
