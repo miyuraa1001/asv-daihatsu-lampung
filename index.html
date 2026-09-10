@@ -1989,13 +1989,13 @@
                         <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
                         <td class="py-2.5 px-3 font-mono text-slate-600 bg-slate-50/60">${item.lokasiSap}</td>
                         <td class="py-2.5 px-3 font-mono font-bold ${item.lokasiSap !== item.lokasiOpname ? 'text-amber-700 bg-amber-50' : 'text-slate-800'}">${item.lokasiOpname}</td>
+                        <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${formatDisplayTime(item.waktuScan)}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${asetBadge}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${labelBadge}</td>
                         <td class="py-2.5 px-3 whitespace-nowrap">${metodeBadge}</td>
-                        <td class="py-2.5 px-3 text-center whitespace-nowrap">${fotoHtml}</td>
-                        <td class="py-2.5 px-3 text-slate-600 max-w-xs truncate" title="${item.keterangan || '-'}">${item.keterangan || '-'}</td>
+                        <td class="py-2.5 px-3 text-center whitespace-nowrap">${fotoHtml}</td> <!-- Kolom Foto Temuan yang pas -->
+                        <td class="py-2.5 px-3 text-slate-600 max-w-xs truncate" title="${item.keterangan || '-'}">${item.keterangan || '-'}</td> <!-- Kolom Keterangan yang pas -->
                         <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                        <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${formatDisplayTime(item.waktuScan)}</td>
                             <button onclick="deleteSingleLog('${item.assetId}', '${item.subNumber || '0'}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Hapus log ini">
                                 <i class="fa-solid fa-trash-can text-xs"></i>
                             </button>
