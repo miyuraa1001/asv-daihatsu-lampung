@@ -1933,12 +1933,16 @@
                         ? `<span class="font-medium text-astra-700 bg-astra-50 px-2 py-0.5 rounded border border-astra-200"><i class="fa-solid fa-barcode text-[9px] mr-1"></i>Scan</span>`
                         : `<span class="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200"><i class="fa-solid fa-keyboard text-[9px] mr-1"></i>Manual</span>`;
 
+                    // Di dalam fungsi renderHistoryTable()
                     let fotoHtml = `<span class="text-slate-400 italic text-[11px]">-</span>`;
                     if (item.asetTemuan) {
+                        // Cek apakah data berupa string Base64 langsung atau URL gambar lama
+                        let imgSrc = item.asetTemuan;
+                        
                         fotoHtml = `
                             <div class="flex items-center justify-center">
-                                <button onclick="viewPhotoDetail('${item.asetTemuan}')" title="Klik untuk memperbesar foto temuan" class="relative group p-0.5 rounded-lg border border-rose-300 hover:border-rose-500 shadow-xs bg-white transition">
-                                    <img src="${item.asetTemuan}" alt="Temuan" class="w-9 h-9 object-cover rounded">
+                                <button onclick="viewPhotoDetail('${imgSrc}')" title="Klik untuk memperbesar foto temuan" class="relative group p-0.5 rounded-lg border border-rose-300 hover:border-rose-500 shadow-xs bg-white transition">
+                                    <img src="${imgSrc}" alt="Temuan" class="w-9 h-9 object-cover rounded">
                                     <div class="absolute inset-0 bg-black/40 rounded opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[10px] transition">
                                         <i class="fa-solid fa-magnifying-glass-plus"></i>
                                     </div>
