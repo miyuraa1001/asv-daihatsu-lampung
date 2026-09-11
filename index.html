@@ -1993,9 +1993,20 @@
 
         // --- JAVASCRIPT MODAL & AUTENTIKASI LOGIN ---
         
+        // Buka Modal Login & Auto-fill jika "Ingat Saya" aktif
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             if (modal) modal.classList.remove('hidden');
+        
+            // Cek apakah ada NPK/Username tersimpan di localStorage
+            const savedUsername = localStorage.getItem('asv_remember_user');
+            const rememberCheckbox = document.getElementById('rememberMe');
+            const usernameInput = document.getElementById('loginUsername');
+        
+            if (savedUsername && usernameInput && rememberCheckbox) {
+                usernameInput.value = savedUsername;
+                rememberCheckbox.checked = true;
+            }
         }
         
         function closeLoginModal() {
@@ -2003,9 +2014,10 @@
             if (modal) modal.classList.add('hidden');
         }
         
+        // Toggle Lihat / Sembunyikan Password
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById('loginPassword');
-            const icon = document.getElementById('togglePasswordIcon');
+            const icon = document.getElementById('togglePasswordIcon') || document.getElementById('passwordToggleIcon');
             if (!pwdInput || !icon) return;
         
             if (pwdInput.type === 'password') {
@@ -2017,55 +2029,83 @@
             }
         }
         
+        // Handler Submit Login Terhubung ke Google Apps Script
         function handleLoginSubmit(e) {
             e.preventDefault();
         
             const username = safeGetValue('loginUsername').trim();
             const password = safeGetValue('loginPassword').trim();
             const branch = safeGetValue('loginBranch', 'D660');
+            const rememberMe = document.getElementById('rememberMe')?.checked;
             const submitBtn = document.getElementById('btnLoginSubmit');
         
             if (!username || !password) {
-                showToast('Gagal Masuk', 'Harap isi Username dan Kata Sandi.', 'warning');
+                showToast('Gagal Masuk', 'Harap isi Username/NPK dan Password.', 'warning');
                 return;
             }
         
-            // Efek Loading pada Tombol
+            // Ubah status tombol jadi Loading
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Memverifikasi...`;
             }
         
-            // Simulasi Proses Verifikasi
-            setTimeout(() => {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
-                }
+            // Pemanggilan ke Backend (Kode.gs -> checkLogin)
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    // Kembalikan tombol ke keadaan semula
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
+                    }
         
-                // Simpan Data Sesi Petugas ke LocalStorage
-                const currentUser = {
-                    name: username,
-                    branch: branch,
-                    branchName: branchNames[branch] || branch,
-                    loginTime: new Date().toISOString()
-                };
-                localStorage.setItem('asv_active_user', JSON.stringify(currentUser));
+                    if (response && response.success) {
+                        // Handle Logika "Ingat Saya"
+                        if (rememberMe) {
+                            localStorage.setItem('asv_remember_user', username);
+                        } else {
+                            localStorage.removeItem('asv_remember_user');
+                        }
         
-                // Update Tampilan UI Sesi Aktif
-                updateActiveUserUI(currentUser);
+                        // Data sesi user aktif
+                        const currentUser = {
+                            name: response.user.nama,
+                            npk: response.user.npk,
+                            branch: branch,
+                            branchName: (typeof branchNames !== 'undefined' && branchNames[branch]) ? branchNames[branch] : branch,
+                            loginTime: new Date().toISOString()
+                        };
         
-                // Pilih otomatis cabang sesuai penugasan login
-                const branchSelect = document.getElementById('branchSelector');
-                if (branchSelect) {
-                    branchSelect.value = branch;
-                    onBranchChange();
-                }
+                        // Simpan Sesi Login Aktif
+                        localStorage.setItem('asv_active_user', JSON.stringify(currentUser));
         
-                closeLoginModal();
-                playBeepSound('success');
-                showToast('Berhasil Masuk', `Selamat datang, ${username}! Sesi cabang ${branch} aktif.`, 'success');
-            }, 600);
+                        // Update UI Sesi
+                        updateActiveUserUI(currentUser);
+        
+                        // Update Branch Selector
+                        const branchSelect = document.getElementById('branchSelector');
+                        if (branchSelect) {
+                            branchSelect.value = branch;
+                            if (typeof onBranchChange === 'function') onBranchChange();
+                        }
+        
+                        closeLoginModal();
+                        if (typeof playBeepSound === 'function') playBeepSound('success');
+                        showToast('Berhasil Masuk', `Selamat datang, ${response.user.nama}!`, 'success');
+        
+                    } else {
+                        if (typeof playBeepSound === 'function') playBeepSound('error');
+                        showToast('Akses Ditolak', response ? response.message : 'Username/NPK atau Password salah.', 'error');
+                    }
+                })
+                .withFailureHandler(function (err) {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
+                    }
+                    showToast('Kesalahan Sistem', 'Gagal terhubung ke database Google Sheet.', 'error');
+                })
+                .checkLogin(username, password); // Memanggil fungsi checkLogin(npk, password) di Kode.gs
         }
         
         function updateActiveUserUI(userData) {
@@ -2078,19 +2118,26 @@
             safeSetText('profileNameDisplay', userData.name);
         }
         
-        // Override Fungsi handleLogout Bawaan untuk Buka Modal Login
+        // Override Fungsi Logout
         function handleLogout() {
-            askConfirm(
-                'Konfirmasi Keluar',
-                'Apakah Anda yakin ingin mengakhiri sesi petugas saat ini?',
-                () => {
-                    localStorage.removeItem('asv_active_user');
-                    safeSetText('sidebarAuditorName', 'Petugas Audit');
-                    safeSetText('profileNameDisplay', 'Belum Login');
-                    showToast('Sesi Berakhir', 'Anda telah keluar. Silakan login kembali.', 'info');
-                    openLoginModal();
-                }
-            );
+            if (typeof askConfirm === 'function') {
+                askConfirm(
+                    'Konfirmasi Keluar',
+                    'Apakah Anda yakin ingin mengakhiri sesi petugas saat ini?',
+                    function () {
+                        localStorage.removeItem('asv_active_user');
+                        safeSetText('sidebarAuditorName', 'Petugas Audit');
+                        safeSetText('profileNameDisplay', 'Belum Login');
+                        showToast('Sesi Berakhir', 'Anda telah keluar. Silakan login kembali.', 'info');
+                        openLoginModal();
+                    }
+                );
+            } else if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.removeItem('asv_active_user');
+                safeSetText('sidebarAuditorName', 'Petugas Audit');
+                safeSetText('profileNameDisplay', 'Belum Login');
+                openLoginModal();
+            }
         }
 
 
