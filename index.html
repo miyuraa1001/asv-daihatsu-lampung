@@ -632,6 +632,67 @@
         </button>
     </nav>
 
+    <!-- MODAL LOGIN AUDITOR / PETUGAS -->
+    <div id="loginModal" class="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeLoginModal()">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all" onclick="event.stopPropagation()">
+            
+            <!-- Header Modal Login -->
+            <div class="bg-gradient-to-r from-slate-900 via-astra-800 to-daihatsu-900 text-white p-6 text-center relative">
+                <button onclick="closeLoginModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-lg transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-daihatsu-600 to-astra-700 flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg shadow-daihatsu-600/30 border border-white/20">
+                    ASV
+                </div>
+                <h3 class="font-black text-lg tracking-tight">Masuk Akses Petugas</h3>
+                <p class="text-xs text-slate-300 mt-1">Asset Scan & Verification System</p>
+            </div>
+    
+            <!-- Form Login -->
+            <form onsubmit="handleLoginSubmit(event)" class="p-5 sm:p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Username / NPK <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="loginUsername" required placeholder="Masukkan NPK / Username..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                </div>
+    
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Kata Sandi <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i id="togglePasswordIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+    
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Cabang Tugas <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <select id="loginBranch" required class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
+                            <option value="D660">D660 (LAMPUNG A. YANI)</option>
+                            <option value="D661">D661 (LAMPUNG S. HATTA)</option>
+                            <option value="D662">D662 (BANDAR JAYA)</option>
+                            <option value="D663">D663 (LAMPUNG UTARA)</option>
+                            <option value="D664">D664 (LAMPUNG TIMUR)</option>
+                        </select>
+                    </div>
+                </div>
+    
+                <div class="pt-2">
+                    <button type="submit" id="btnLoginSubmit" class="w-full py-3 bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold text-xs rounded-xl shadow-md shadow-daihatsu-600/30 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Masuk ke Sistem</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- MODAL 1: FORM VERIFIKASI OPNAME & INPUT TEMUAN -->
     <div id="opnameModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs hidden flex items-center justify-center p-2 sm:p-4" onclick="closeOpnameModal()">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[95vh] flex flex-col" onclick="event.stopPropagation()">
@@ -1922,6 +1983,115 @@
             return str.replace(/\//g, '.');
         }
 
+        // --- JAVASCRIPT MODAL & AUTENTIKASI LOGIN ---
+        
+        function openLoginModal() {
+            const modal = document.getElementById('loginModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+        
+        function closeLoginModal() {
+            const modal = document.getElementById('loginModal');
+            if (modal) modal.classList.add('hidden');
+        }
+        
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('loginPassword');
+            const icon = document.getElementById('togglePasswordIcon');
+            if (!pwdInput || !icon) return;
+        
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                pwdInput.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+        
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+        
+            const username = safeGetValue('loginUsername').trim();
+            const password = safeGetValue('loginPassword').trim();
+            const branch = safeGetValue('loginBranch', 'D660');
+            const submitBtn = document.getElementById('btnLoginSubmit');
+        
+            if (!username || !password) {
+                showToast('Gagal Masuk', 'Harap isi Username dan Kata Sandi.', 'warning');
+                return;
+            }
+        
+            // Efek Loading pada Tombol
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Memverifikasi...`;
+            }
+        
+            // Simulasi Proses Verifikasi
+            setTimeout(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
+                }
+        
+                // Simpan Data Sesi Petugas ke LocalStorage
+                const currentUser = {
+                    name: username,
+                    branch: branch,
+                    branchName: branchNames[branch] || branch,
+                    loginTime: new Date().toISOString()
+                };
+                localStorage.setItem('asv_active_user', JSON.stringify(currentUser));
+        
+                // Update Tampilan UI Sesi Aktif
+                updateActiveUserUI(currentUser);
+        
+                // Pilih otomatis cabang sesuai penugasan login
+                const branchSelect = document.getElementById('branchSelector');
+                if (branchSelect) {
+                    branchSelect.value = branch;
+                    onBranchChange();
+                }
+        
+                closeLoginModal();
+                playBeepSound('success');
+                showToast('Berhasil Masuk', `Selamat datang, ${username}! Sesi cabang ${branch} aktif.`, 'success');
+            }, 600);
+        }
+        
+        function updateActiveUserUI(userData) {
+            if (!userData) return;
+        
+            // Update Nama di Sidebar
+            safeSetText('sidebarAuditorName', userData.name);
+        
+            // Update Nama di Pengaturan System View
+            safeSetText('profileNameDisplay', userData.name);
+        }
+        
+        // Override Fungsi handleLogout Bawaan untuk Buka Modal Login
+        function handleLogout() {
+            askConfirm(
+                'Konfirmasi Keluar',
+                'Apakah Anda yakin ingin mengakhiri sesi petugas saat ini?',
+                () => {
+                    localStorage.removeItem('asv_active_user');
+                    safeSetText('sidebarAuditorName', 'Petugas Audit');
+                    safeSetText('profileNameDisplay', 'Belum Login');
+                    showToast('Sesi Berakhir', 'Anda telah keluar. Silakan login kembali.', 'info');
+                    openLoginModal();
+                }
+            );
+        }
+
+        <button onclick="openLoginModal()" class="px-3 py-1.5 bg-astra-50 hover:bg-astra-100 text-astra-700 font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Ganti Petugas / Login</span>
+        </button>
+
+    
+        
         // Fungsi khusus untuk menangani Waktu Scan agar tidak berubah jadi tahun
         function formatDisplayTime(timeInput) {
             if (!timeInput) return "-";
@@ -2722,6 +2892,13 @@
                 });
             }
         };
+        // Cek Sesi Petugas yang Tersimpan
+        const savedUser = localStorage.getItem('asv_active_user');
+        if (savedUser) {
+            updateActiveUserUI(JSON.parse(savedUser));
+        } else {
+            openLoginModal(); // Buka modal login otomatis jika belum ada sesi
+        }
     </script>
 </body>
 </html>
