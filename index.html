@@ -2029,7 +2029,6 @@
             }
         }
         
-        // Handler Submit Login Terhubung ke Google Apps Script
         function handleLoginSubmit(e) {
             e.preventDefault();
         
@@ -2050,62 +2049,69 @@
                 submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Memverifikasi...`;
             }
         
-            // Pemanggilan ke Backend (Kode.gs -> checkLogin)
-            google.script.run
-                .withSuccessHandler(function (response) {
-                    // Kembalikan tombol ke keadaan semula
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
-                    }
+            // Menggunakan fetch POST melalui Proxy Vercel
+            fetch(PROXY_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "checkLogin",
+                    username: username,
+                    password: password
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
+                }
         
-                    if (response && response.success) {
-                        // Handle Logika "Ingat Saya"
-                        if (rememberMe) {
-                            localStorage.setItem('asv_remember_user', username);
-                        } else {
-                            localStorage.removeItem('asv_remember_user');
-                        }
-        
-                        // Data sesi user aktif
-                        const currentUser = {
-                            name: response.user.nama,
-                            npk: response.user.npk,
-                            branch: branch,
-                            branchName: (typeof branchNames !== 'undefined' && branchNames[branch]) ? branchNames[branch] : branch,
-                            loginTime: new Date().toISOString()
-                        };
-        
-                        // Simpan Sesi Login Aktif
-                        localStorage.setItem('asv_active_user', JSON.stringify(currentUser));
-        
-                        // Update UI Sesi
-                        updateActiveUserUI(currentUser);
-        
-                        // Update Branch Selector
-                        const branchSelect = document.getElementById('branchSelector');
-                        if (branchSelect) {
-                            branchSelect.value = branch;
-                            if (typeof onBranchChange === 'function') onBranchChange();
-                        }
-        
-                        closeLoginModal();
-                        if (typeof playBeepSound === 'function') playBeepSound('success');
-                        showToast('Berhasil Masuk', `Selamat datang, ${response.user.nama}!`, 'success');
-        
+                if (response && response.success) {
+                    // Handle Logika "Ingat Saya"
+                    if (rememberMe) {
+                        localStorage.setItem('asv_remember_user', username);
                     } else {
-                        if (typeof playBeepSound === 'function') playBeepSound('error');
-                        showToast('Akses Ditolak', response ? response.message : 'Username/NPK atau Password salah.', 'error');
+                        localStorage.removeItem('asv_remember_user');
                     }
-                })
-                .withFailureHandler(function (err) {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
+        
+                    // Data sesi user aktif
+                    const currentUser = {
+                        name: response.user.nama,
+                        npk: response.user.npk,
+                        branch: branch,
+                        branchName: (typeof branchNames !== 'undefined' && branchNames[branch]) ? branchNames[branch] : branch,
+                        loginTime: new Date().toISOString()
+                    };
+        
+                    // Simpan Sesi Login Aktif
+                    localStorage.setItem('asv_active_user', JSON.stringify(currentUser));
+        
+                    // Update UI Sesi
+                    updateActiveUserUI(currentUser);
+        
+                    // Update Branch Selector
+                    const branchSelect = document.getElementById('branchSelector');
+                    if (branchSelect) {
+                        branchSelect.value = branch;
+                        if (typeof onBranchChange === 'function') onBranchChange();
                     }
-                    showToast('Kesalahan Sistem', 'Gagal terhubung ke database Google Sheet.', 'error');
-                })
-                .checkLogin(username, password); // Memanggil fungsi checkLogin(npk, password) di Kode.gs
+        
+                    closeLoginModal();
+                    if (typeof playBeepSound === 'function') playBeepSound('success');
+                    showToast('Berhasil Masuk', `Selamat datang, ${response.user.nama}!`, 'success');
+        
+                } else {
+                    if (typeof playBeepSound === 'function') playBeepSound('error');
+                    showToast('Akses Ditolak', response ? response.message : 'Username/NPK atau Password salah.', 'error');
+                }
+            })
+            .catch(err => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk ke Sistem</span>`;
+                }
+                showToast('Kesalahan Sistem', 'Gagal terhubung ke database server.', 'error');
+            });
         }
         
         function updateActiveUserUI(userData) {
