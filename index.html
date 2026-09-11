@@ -651,10 +651,10 @@
             <!-- Form Login -->
             <form onsubmit="handleLoginSubmit(event)" class="p-5 sm:p-6 space-y-4 text-xs">
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Username / NPK <span class="text-rose-500">*</span></label>
+                    <label class="block font-bold text-slate-700 mb-1">NPK <span class="text-rose-500">*</span></label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="loginUsername" required placeholder="Masukkan NPK / Username..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
+                        <input type="text" id="loginUsername" required placeholder="Masukkan NPK" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
                     </div>
                 </div>
     
@@ -666,20 +666,6 @@
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                             <i id="togglePasswordIcon" class="fa-solid fa-eye"></i>
                         </button>
-                    </div>
-                </div>
-    
-                <div>
-                    <label class="block font-bold text-slate-700 mb-1">Cabang Tugas <span class="text-rose-500">*</span></label>
-                    <div class="relative">
-                        <i class="fa-solid fa-building absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <select id="loginBranch" required class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
-                            <option value="D660">D660 (LAMPUNG A. YANI)</option>
-                            <option value="D661">D661 (LAMPUNG S. HATTA)</option>
-                            <option value="D662">D662 (BANDAR JAYA)</option>
-                            <option value="D663">D663 (LAMPUNG UTARA)</option>
-                            <option value="D664">D664 (LAMPUNG TIMUR)</option>
-                        </select>
                     </div>
                 </div>
     
