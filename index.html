@@ -121,9 +121,10 @@
             <h3 id="confirmModalTitle" class="font-bold text-slate-900 text-base">Konfirmasi Tindakan</h3>
             <p id="confirmModalMessage" class="text-xs text-slate-500 leading-relaxed">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
             <div class="flex items-center gap-2 pt-2">
-                < onclick="closeConfirmModal(false)" class="w-1/2 py-3 sm:py-2.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
+                <!-- PERBAIKAN DI SINI: Tag <button> harus ditulis lengkap -->
+                <button type="button" onclick="closeConfirmModal(false)" class="w-1/2 py-3 sm:py-2.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
                     Batal
-                </>
+                </button>
                 <button id="confirmModalActionBtn" onclick="executePendingConfirmAction()" class="w-1/2 py-3 sm:py-2.5 text-xs font-bold bg-daihatsu-600 hover:bg-daihatsu-700 text-white rounded-xl transition shadow-md">
                     Ya, Lanjutkan
                 </button>
