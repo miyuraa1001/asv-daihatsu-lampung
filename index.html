@@ -354,33 +354,36 @@
     <!-- VIEW 2: DAFTAR MASTER DATA ASET -->
     <main id="masterDataView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
         <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
-                <div>
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                        <i class="fa-solid fa-boxes-stacked text-astra-600"></i>
-                        <span>Daftar Master Aset </span>
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Database master aset Astra Daihatsu dari server</p>
+            <!-- Header Card Master Aset yang Responsif -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col gap-3.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-stacked text-astra-600"></i>
+                            <span>Daftar Master Aset</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Database master aset Astra Daihatsu dari server</p>
+                    </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
-                    <div class="relative min-w-[200px] flex-grow">
+                <!-- Toolbar Pencarian & Filter yang Otomatis Turun ke Bawah jika Sempit -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+                    <div class="relative flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="tableSearchInput" onkeyup="resetPageAndRender()" placeholder="Cari ID Asset / Deskripsi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500">
+                        <input type="text" id="tableSearchInput" onkeyup="resetPageAndRender()" placeholder="Cari ID Asset / Deskripsi..." class="w-full pl-8 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <select id="roomFilter" onchange="resetPageAndRender()" class="w-full sm:w-auto text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-astra-500">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="roomFilter" onchange="resetPageAndRender()" class="flex-1 sm:flex-none text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
                             <option value="ALL">Semua Ruangan</option>
-                            <!-- Pilihan ruangan akan digenerate otomatis via JavaScript -->
                         </select>
 
-                        <button onclick="openAddAssetModal()" class="px-3.5 py-2 text-xs font-bold bg-daihatsu-600 hover:bg-daihatsu-700 text-white rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                        <button onclick="openAddAssetModal()" class="px-3.5 py-2.5 text-xs font-bold bg-daihatsu-600 hover:bg-daihatsu-700 text-white rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
                             <i class="fa-solid fa-plus"></i>
                             <span>Tambah Aset</span>
                         </button>
 
-                        <button onclick="fetchDataFromBackend()" class="px-3 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center justify-center gap-1.5 shrink-0">
+                        <button onclick="fetchDataFromBackend()" class="px-3 py-2.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center gap-1.5 shrink-0" title="Refresh Data">
                             <i class="fa-solid fa-arrows-rotate"></i>
                             <span class="hidden sm:inline">Refresh</span>
                         </button>
@@ -416,9 +419,11 @@
             </div>
         </section>
     </main>
-
-    <!-- VIEW 3: RIWAYAT SCAN ASET -->
+    
+   <!-- VIEW 3: RIWAYAT SCAN ASET -->
     <main id="auditHistoryView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
+        
+        <!-- Statistik Grid yang Otomatis Menyesuaikan Layar -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
                 <p class="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase">Total Pemindaian</p>
@@ -443,40 +448,40 @@
         </div>
 
         <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <!-- Header Card Riwayat yang Fleksibel & Responsif -->
-            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col gap-3">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                            <i class="fa-solid fa-clock-rotate-left text-astra-600"></i>
-                            <span>Log Pemindaian (Stock Opname)</span>
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi riwayat scan fisik, status aset, label, dan lampiran foto temuan</p>
-                    </div>
+            <!-- Header Card Riwayat -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col gap-3.5">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-astra-600"></i>
+                        <span>Log Pemindaian (Stock Opname)</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Rekapitulasi riwayat scan fisik, status aset, label, dan lampiran foto temuan</p>
                 </div>
 
-                <!-- Toolbar Filter, Cari, dan Aksi -->
-                <div class="flex flex-wrap items-center gap-2 pt-1">
-                    <div class="relative min-w-[180px] flex-1">
+                <!-- Toolbar Filter, Cari, dan Aksi yang Fleksibel -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
+                    <div class="relative flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
+                        <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
                     </div>
 
-                    <select id="historyMethodFilter" onchange="renderHistoryTable()" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-astra-500">
-                        <option value="ALL">Semua Metode</option>
-                        <option value="Scan">Scan (Kamera/Foto)</option>
-                        <option value="Manual">Manual</option>
-                    </select>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="historyMethodFilter" onchange="renderHistoryTable()" class="flex-1 sm:flex-none text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
+                            <option value="ALL">Semua Metode</option>
+                            <option value="Scan">Scan (Kamera/Foto)</option>
+                            <option value="Manual">Manual</option>
+                        </select>
 
-                    <button onclick="exportHistoryToExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
-                        <i class="fa-solid fa-file-excel"></i>
-                        <span>Export</span>
-                    </button>
+                        <button onclick="exportHistoryToExcel()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                            <i class="fa-solid fa-file-excel"></i>
+                            <span>Export</span>
+                        </button>
 
-                    <button onclick="requestClearAllHistory()" title="Bersihkan semua log riwayat" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs rounded-lg transition shrink-0 flex items-center gap-1">
-                        <i class="fa-solid fa-trash-can"></i>
-                        <span class="hidden sm:inline">Hapus Semua</span>
-                    </button>
+                        <button onclick="requestClearAllHistory()" title="Bersihkan semua log riwayat" class="px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold text-xs rounded-xl transition shrink-0 flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span class="hidden sm:inline">Hapus Semua</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -498,7 +503,7 @@
                             <th class="py-3 px-3">Metode Opname</th>
                             <th class="py-3 px-3 text-center">Aset Temuan (Foto)</th>
                             <th class="py-3 px-3">Keterangan</th>
-                            <th class="py-3 px-3 text-center">Aksi</th> <!-- TAMBAHAN KOLOM AKSI -->
+                            <th class="py-3 px-3 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody" class="divide-y divide-slate-200 text-slate-700 bg-white">
@@ -513,52 +518,90 @@
             </div>
         </section>
     </main>
-
+    
     <!-- VIEW 4: REKAPITULASI CABANG & RUANGAN -->
     <main id="recapView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-            <div>
-                <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-layer-group text-astra-600"></i>
-                    <span>Rekap Data Aset per Ruangan & Cabang</span>
-                </h2>
-                <p class="text-xs text-slate-500 mt-0.5">Ringkasan rekapitulasi aset berdasarkan Business Area dan Lokasi Ruangan</p>
+        
+        <!-- Header Card Rekap yang Responsif (Fleksibel saat layar dibelah dua) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-astra-600"></i>
+                        <span>Rekap Data Aset per Ruangan & Cabang</span>
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Ringkasan rekapitulasi aset berdasarkan Business Area dan Lokasi Ruangan</p>
+                </div>
             </div>
             
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <!-- DROPDOWN FILTER RUANGAN KHUSUS MENU REKAP -->
-                <select id="recapRoomFilter" onchange="renderRecapView()" class="text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
-                    <option value="ALL">Semua Ruangan</option>
-                    <!-- Terisi otomatis via JS -->
-                </select>
+            <!-- Baris Filter & Tombol Download yang Otomatis Turun ke Bawah jika Layar Sempit / Split Screen -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-2 border-t border-slate-100">
+                <div class="flex-1 min-w-[140px]">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Filter Ruangan:</label>
+                    <select id="recapRoomFilter" onchange="renderRecapView()" class="w-full text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
+                        <option value="ALL">Semua Ruangan</option>
+                        <!-- Terisi otomatis via JS -->
+                    </select>
+                </div>
 
-                <button onclick="exportRecapToExcel()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm shrink-0">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Download Rekap Excel</span>
-                </button>
+                <div class="sm:self-end">
+                    <button onclick="exportRecapToExcel()" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm shrink-0">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Download Rekap Excel</span>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div id="recapSummaryBar" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4"></div>
+        <!-- Statistik Summary Bar (Grid otomatis menyesuaikan 2 kolom di HP, 4 kolom di Desktop) -->
+        <div id="recapSummaryBar" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+        
         <div class="space-y-4 sm:space-y-6" id="recapBranchCards"></div>
     </main>
 
     <!-- VIEW 5: PENGATURAN SISTEM & PROFIL -->
     <main id="settingsView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
                 <div>
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-astra-600"></i>
                         <span>Pengaturan Sistem & Profil</span>
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">Konfigurasi operasional pengecekan fisik aset, akun petugas, dan sinkronisasi.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Konfigurasi operasional pengecekan fisik aset, akun petugas, dan sinkronisasi.</p>
                 </div>
                 <span class="text-xs bg-blue-50 text-astra-700 font-semibold px-3 py-1 rounded-full border border-blue-100 self-start sm:self-auto">Astra Daihatsu v1.2</span>
             </div>
     
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <!-- 1. KARTU PROFIL PETUGAS / AUDITOR (Persiapan Login di Akhir) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+
+                <!-- 3. KARTU UBAH KATA SANDI -->
+                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between md:col-span-2">
+                    <div>
+                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-key text-astra-600"></i>
+                            <span>Ubah Kata Sandi Petugas</span>
+                        </h3>
+                        <form onsubmit="handleChangePasswordSubmit(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Sandi Lama</label>
+                                <input type="password" id="oldPasswordInput" required placeholder="••••••••" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-astra-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Sandi Baru</label>
+                                <input type="password" id="newPasswordInput" required placeholder="••••••••" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-astra-500 focus:outline-none">
+                            </div>
+                            <div class="sm:self-end">
+                                <button type="submit" id="btnUpdatePass" class="w-full py-2.5 bg-astra-600 hover:bg-astra-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <span>Simpan Sandi Baru</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 1. KARTU PROFIL PETUGAS / AUDITOR -->
                 <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between">
                     <div>
                         <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
@@ -578,8 +621,8 @@
                     </div>
     
                     <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
-                        <span class="text-slate-500">Status: <strong class="text-emerald-600 font-semibold">Aktif (Pra-Login)</strong></span>
-                        <button onclick="handleLogout()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+                        <span class="text-slate-500">Status: <strong class="text-emerald-600 font-semibold">Aktif</strong></span>
+                        <button onclick="handleLogout()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>Keluar / Logout</span>
                         </button>
@@ -599,7 +642,7 @@
                     </div>
     
                     <div class="pt-2">
-                        <button onclick="loadLogsFromServer(); showToast('Sinkronisasi', 'Memperbarui data dari Google Sheets...', 'info');" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-2">
+                        <button onclick="loadLogsFromServer(); showToast('Sinkronisasi', 'Memperbarui data dari Google Sheets...', 'info');" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-arrows-rotate"></i>
                             <span>Tarik Data dari Server</span>
                         </button>
@@ -639,7 +682,7 @@
         </button>
     </nav>
 
-<!-- MODAL LOGIN AUDITOR / PETUGAS -->
+    <!-- MODAL LOGIN AUDITOR / PETUGAS -->
     <div id="loginModal" class="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeLoginModal()">
         <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all" onclick="event.stopPropagation()">
             
@@ -2275,7 +2318,26 @@
 
         function exportHistoryToExcel() {
             try {
-                const exportData = historyLogs.map((h, i) => ({
+                const searchVal = safeGetValue('historySearchInput').toLowerCase().trim();
+                const methodVal = safeGetValue('historyMethodFilter', 'ALL');
+                const branchVal = safeGetValue('branchSelector', 'ALL');
+        
+                // Filter data sesuai apa yang sedang tampil di tabel riwayat saat ini
+                const filtered = historyLogs.filter(item => {
+                    const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.lokasiOpname} ${item.keterangan || ''}`.toLowerCase();
+                    const matchSearch = searchTarget.includes(searchVal);
+                    const matchMethod = methodVal === 'ALL' || item.metodeOpname === methodVal;
+                    const matchBranch = branchVal === 'ALL' || item.cabang.startsWith(branchVal) || branchVal.startsWith(item.cabang);
+        
+                    return matchSearch && matchMethod && matchBranch;
+                });
+        
+                if (filtered.length === 0) {
+                    showToast('Tidak Ada Data', 'Tidak ada data riwayat yang sesuai dengan filter saat ini untuk diexport.', 'warning');
+                    return;
+                }
+        
+                const exportData = filtered.map((h, i) => ({
                     "NO": i + 1,
                     "Tanggal Scan": formatDisplayDate(h.tanggalScan),
                     "ID Asset": h.assetId,
@@ -2292,16 +2354,48 @@
                     "Aset Temuan": h.asetTemuan ? "Ada Foto Temuan Terlampir" : "-",
                     "Keterangan": h.keterangan || "-"
                 }));
-
+        
                 const worksheet = XLSX.utils.json_to_sheet(exportData);
+                
+                // Penambahan border rapi
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                const thinBorder = {
+                    top: { style: "thin", color: { rgb: "CCCCCC" } },
+                    bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                    left: { style: "thin", color: { rgb: "CCCCCC" } },
+                    right: { style: "thin", color: { rgb: "CCCCCC" } }
+                };
+        
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                        if (!worksheet[cellAddress]) continue;
+                        
+                        if (R === 0) {
+                            worksheet[cellAddress].s = {
+                                font: { bold: true, color: { rgb: "FFFFFF" } },
+                                fill: { fgColor: { rgb: "1E293B" } },
+                                border: thinBorder,
+                                alignment: { horizontal: "center", vertical: "center" }
+                            };
+                        } else {
+                            worksheet[cellAddress].s = {
+                                border: thinBorder,
+                                alignment: { vertical: "center" }
+                            };
+                        }
+                    }
+                }
+        
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Table2_Opname");
-
-                const filename = `Table2_Riwayat_Scan_Astra_Daihatsu_${new Date().toISOString().slice(0,10)}.xlsx`;
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Riwayat_Opname_Filtered");
+        
+                const filename = `Riwayat_Scan_${branchVal !== 'ALL' ? branchVal : 'Semua_Cabang'}_${new Date().toISOString().slice(0,10)}.xlsx`;
                 XLSX.writeFile(workbook, filename);
-
-                showToast('Export Berhasil', `File log (${filename}) telah diunduh.`, 'success');
+        
+                showToast('Export Berhasil', `File log (${filename}) berhasil diunduh sesuai filter aktif.`, 'success');
             } catch (err) {
+                console.error(err);
                 showToast('Export Gagal', 'Gagal memproses file Excel.', 'warning');
             }
         }
@@ -2784,8 +2878,23 @@
         
         function exportRecapToExcel() {
             try {
+                const selectedBranch = safeGetValue('branchSelector', 'ALL');
+                const selectedRoom = safeGetValue('recapRoomFilter', 'ALL');
+        
+                // Filter aset berdasarkan Cabang dan Ruangan yang sedang aktif dipilih
+                const scopedAssets = assets.filter(a => {
+                    const matchBranch = selectedBranch === 'ALL' || a.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(a.cabang);
+                    const matchRoom = selectedRoom === 'ALL' || String(a.lokasi || "").trim().toUpperCase() === selectedRoom;
+                    return matchBranch && matchRoom;
+                });
+        
+                if (scopedAssets.length === 0) {
+                    showToast('Tidak Ada Data', 'Tidak ada data aset rekap yang sesuai dengan filter saat ini.', 'warning');
+                    return;
+                }
+        
                 const exportRows = [];
-                assets.forEach(a => {
+                scopedAssets.forEach(a => {
                     const isScanned = historyLogs.some(h => h.assetId === a.id);
                     exportRows.push({
                         "Business Area": a.cabang,
@@ -2798,19 +2907,51 @@
                         "Status Opname": isScanned ? "Sudah Di-Scan" : "Belum Di-Scan"
                     });
                 });
-
+        
                 const worksheet = XLSX.utils.json_to_sheet(exportRows);
+        
+                // Penambahan border rapi
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                const thinBorder = {
+                    top: { style: "thin", color: { rgb: "CCCCCC" } },
+                    bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+                    left: { style: "thin", color: { rgb: "CCCCCC" } },
+                    right: { style: "thin", color: { rgb: "CCCCCC" } }
+                };
+        
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                        if (!worksheet[cellAddress]) continue;
+                        
+                        if (R === 0) {
+                            worksheet[cellAddress].s = {
+                                font: { bold: true, color: { rgb: "FFFFFF" } },
+                                fill: { fgColor: { rgb: "1E293B" } },
+                                border: thinBorder,
+                                alignment: { horizontal: "center", vertical: "center" }
+                            };
+                        } else {
+                            worksheet[cellAddress].s = {
+                                border: thinBorder,
+                                alignment: { vertical: "center" }
+                            };
+                        }
+                    }
+                }
+        
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap_Aset_Ruangan");
-
-                const filename = `Rekap_Aset_Ruangan_${new Date().toISOString().slice(0,10)}.xlsx`;
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap_Filtered");
+        
+                const filename = `Rekap_${selectedBranch !== 'ALL' ? selectedBranch : 'Semua_Cabang'}_${selectedRoom !== 'ALL' ? selectedRoom : 'Semua_Ruangan'}_${new Date().toISOString().slice(0,10)}.xlsx`;
                 XLSX.writeFile(workbook, filename);
-                showToast('Export Berhasil', `File (${filename}) telah diunduh.`, 'success');
+                showToast('Export Berhasil', `File rekap (${filename}) berhasil diunduh sesuai filter.`, 'success');
             } catch (err) {
+                console.error(err);
                 showToast('Export Gagal', 'Gagal memproses file Excel rekap.', 'warning');
             }
         }
-
+        
         function populateRoomFilterDropdown() {
             const selectEl = document.getElementById('roomFilter');
             if (!selectEl) return;
@@ -2899,6 +3040,68 @@
         function selectLiveCameraScan() {
             closeScanMethodModal();
             openCameraModal();
+        }
+
+        function handleChangePasswordSubmit(e) {
+            e.preventDefault();
+        
+            const oldPassword = safeGetValue('oldPasswordInput').trim();
+            const newPassword = safeGetValue('newPasswordInput').trim();
+            const submitBtn = document.getElementById('btnUpdatePass');
+        
+            // Ambil data NPK dari sesi user aktif yang sedang login
+            const activeUserStr = localStorage.getItem('asv_active_user');
+            if (!activeUserStr) {
+                showToast('Gagal', 'Sesi login tidak ditemukan. Silakan login ulang.', 'error');
+                return;
+            }
+            const currentUser = JSON.parse(activeUserStr);
+        
+            if (!oldPassword || !newPassword) {
+                showToast('Input Kosong', 'Harap isi sandi lama dan sandi baru.', 'warning');
+                return;
+            }
+        
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Menyimpan...`;
+            }
+        
+            fetch(PROXY_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: "updatePassword",
+                    npk: currentUser.npk,
+                    oldPassword: oldPassword,
+                    newPassword: newPassword
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> <span>Simpan Sandi Baru</span>`;
+                }
+        
+                if (res && res.success) {
+                    showToast('Berhasil!', res.message, 'success');
+                    playBeepSound('success');
+                    // Kosongkan form input
+                    document.getElementById('oldPasswordInput').value = '';
+                    document.getElementById('newPasswordInput').value = '';
+                } else {
+                    showToast('Gagal Ubah Sandi', res.message || 'Sandi lama tidak sesuai.', 'error');
+                    playBeepSound('error');
+                }
+            })
+            .catch(err => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> <span>Simpan Sandi Baru</span>`;
+                }
+                showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server.', 'warning');
+            });
         }
 
         function handleImageBarcodeUpload(event) {
