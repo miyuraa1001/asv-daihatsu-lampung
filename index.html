@@ -3105,6 +3105,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    token: "astra_daihatsu_2026", // Token pengaman wajib ada
                     action: "updatePassword",
                     npk: currentUser.npk,
                     oldPassword: oldPassword,
@@ -3136,7 +3137,7 @@
                 showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server.', 'warning');
             });
         }
-
+        
         function toggleCustomPasswordVisibility(inputId, iconId) {
             const inputField = document.getElementById(inputId);
             const iconEl = document.getElementById(iconId);
