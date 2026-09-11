@@ -2233,8 +2233,8 @@
             if (!timeInput) return "-";
             let str = String(timeInput).trim();
             
-            // Jika spreadsheet membaca waktu mentah dan mengandung string GMT / ISO date aneh
-            if (str.includes("GMT") || str.includes("193") || str.includes("197")) {
+            // Jika waktu dari spreadsheet berupa format ISO / Date object aneh
+            if (str.includes("GMT") || str.includes("T") || str.length > 10) {
                 let d = new Date(str);
                 if (!isNaN(d.getTime())) {
                     let hours = String(d.getHours()).padStart(2, '0');
@@ -2244,8 +2244,8 @@
                 }
             }
             
-            // Jika bentuknya angka desimal atau string biasa, bersihkan dan tampilkan apa adanya
-            return str.replace(/[:]/g, '.');
+            // Jika sudah berbentuk string jam (contoh: 14.54.57 atau 14:54:57), rapikan pemisahnya jadi titik dua
+            return str.replace(/[.]/g, ':');
         }
         
         // --- TABLE 2 HISTORY RENDERING ---
