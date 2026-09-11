@@ -560,88 +560,114 @@
     </main>
 
     <!-- VIEW 5: PENGATURAN SISTEM & PROFIL -->
-    <main id="settingsView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
-                <div>
-                    <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-astra-600"></i>
-                        <span>Pengaturan Sistem & Profil</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Konfigurasi operasional pengecekan fisik aset, akun petugas, dan sinkronisasi.</p>
-                </div>
-                <span class="text-xs bg-blue-50 text-astra-700 font-semibold px-3 py-1 rounded-full border border-blue-100 self-start sm:self-auto">Astra Daihatsu v1.2</span>
+    <main id="settingsView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 hidden">
+        
+        <!-- Header Banner Pengaturan -->
+        <div class="bg-gradient-to-r from-slate-900 via-astra-800 to-daihatsu-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-900/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/30">
+                    <i class="fa-solid fa-gear text-[10px]"></i> Konfigurasi Sistem
+                </span>
+                <h2 class="text-xl sm:text-2xl font-black text-white mt-1.5">Pengaturan & Profil Petugas</h2>
+                <p class="text-xs text-slate-300 mt-1">Kelola keamanan akun, sesi login petugas, dan sinkronisasi data operasional.</p>
             </div>
-    
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div class="bg-white/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 text-right shrink-0">
+                <span class="text-[10px] text-slate-300 block uppercase font-mono">Versi Aplikasi</span>
+                <span class="text-xs font-bold text-white">Astra Daihatsu v1.2</span>
+            </div>
+        </div>
 
-                <!-- 3. KARTU UBAH KATA SANDI -->
-                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between md:col-span-2">
-                    <div>
-                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
-                            <i class="fa-solid fa-key text-astra-600"></i>
-                            <span>Ubah Kata Sandi Petugas</span>
-                        </h3>
-                        <form onsubmit="handleChangePasswordSubmit(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Sandi Lama</label>
-                                <input type="password" id="oldPasswordInput" required placeholder="••••••••" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-astra-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-slate-700 mb-1">Sandi Baru</label>
-                                <input type="password" id="newPasswordInput" required placeholder="••••••••" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-astra-500 focus:outline-none">
-                            </div>
-                            <div class="sm:self-end">
-                                <button type="submit" id="btnUpdatePass" class="w-full py-2.5 bg-astra-600 hover:bg-astra-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-shield-halved"></i>
-                                    <span>Simpan Sandi Baru</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+        <!-- Grid Pengaturan Utama -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            
+            <!-- Kolom Kiri & Tengah: Sesi Aktif & Ubah Kata Sandi (2 Span) -->
+            <div class="lg:col-span-2 space-y-5">
                 
-                <!-- 1. KARTU PROFIL PETUGAS / AUDITOR -->
-                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between">
-                    <div>
-                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
+                <!-- 1. KARTU SESI PETUGAS AKTIF -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                             <i class="fa-solid fa-user-shield text-astra-600"></i>
                             <span>Sesi Petugas Aktif</span>
                         </h3>
-                        <div class="flex items-center gap-3.5 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
-                            <div class="w-11 h-11 rounded-full bg-astra-600 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+                        <span class="inline-flex items-center gap-1.5 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Aktif
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/70">
+                        <div class="flex items-center space-x-3.5 min-w-0">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-astra-600 to-daihatsu-700 text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
                                 <i class="fa-solid fa-user-tie"></i>
                             </div>
-                            <div class="overflow-hidden">
-                                <h4 id="profileNameDisplay" class="font-bold text-slate-800 text-sm truncate">Budi Santoso</h4>
-                                <p class="text-[11px] text-slate-500 truncate">Auditor / Internal Control</p>
-                                <span class="inline-block mt-1 text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded font-medium">Astra Daihatsu Lampung (D660)</span>
+                            <div class="min-w-0">
+                                <h4 id="profileNameDisplay" class="font-black text-slate-900 text-sm sm:text-base truncate">Muhammad Khairul Fikri</h4>
+                                <p class="text-xs text-slate-500 truncate mt-0.5">Petugas Internal Audit / Control</p>
+                                <span class="inline-block mt-1 text-[10px] bg-astra-50 text-astra-700 border border-astra-200 px-2 py-0.5 rounded font-mono font-medium">Cabang: D660 (Lampung A. Yani)</span>
                             </div>
                         </div>
-                    </div>
-    
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
-                        <span class="text-slate-500">Status: <strong class="text-emerald-600 font-semibold">Aktif</strong></span>
-                        <button onclick="handleLogout()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+
+                        <button onclick="handleLogout()" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs shrink-0">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>Keluar / Logout</span>
                         </button>
                     </div>
                 </div>
-    
-                <!-- 2. KONTROL DATA & SINKRONISASI -->
-                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-slate-50 space-y-4 flex flex-col justify-between">
-                    <div>
-                        <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-2 mb-3">
-                            <i class="fa-solid fa-cloud-arrow-down text-astra-600"></i>
-                            <span>Sinkronisasi Data Multi-Device</span>
+
+                <!-- 2. KARTU UBAH KATA SANDI (PROFESIONAL & RAPI) -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-key text-astra-600"></i>
+                            <span>Keamanan & Ubah Kata Sandi</span>
                         </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan akses.</p>
+                    </div>
+
+                    <form onsubmit="handleChangePasswordSubmit(event)" class="space-y-4 text-xs">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1.5">Kata Sandi Lama <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                    <input type="password" id="oldPasswordInput" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1.5">Kata Sandi Baru <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-shield-halved absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                    <input type="password" id="newPasswordInput" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex justify-end">
+                            <button type="submit" id="btnUpdatePass" class="px-5 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold text-xs rounded-xl shadow-md shadow-daihatsu-600/30 transition flex items-center gap-2">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Simpan Kata Sandi Baru</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Sinkronisasi Server -->
+            <div class="space-y-5">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4 flex flex-col justify-between h-full">
+                    <div>
+                        <div class="border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-down text-astra-600"></i>
+                                <span>Sinkronisasi Data</span>
+                            </h3>
+                        </div>
                         <p class="text-xs text-slate-500 leading-relaxed">
-                            Muat ulang data secara berkala dari database Google Spreadsheet untuk memastikan riwayat pemindaian antar perangkat selalu sinkron secara real-time.
+                            Aplikasi menggunakan basis data terpusat Google Spreadsheet. Gunakan tombol di bawah ini untuk memastikan data master dan riwayat opname antar perangkat selalu sinkron secara <i>real-time</i>.
                         </p>
                     </div>
-    
-                    <div class="pt-2">
+
+                    <div class="pt-4 border-t border-slate-100">
                         <button onclick="loadLogsFromServer(); showToast('Sinkronisasi', 'Memperbarui data dari Google Sheets...', 'info');" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-arrows-rotate"></i>
                             <span>Tarik Data dari Server</span>
@@ -649,9 +675,10 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </main>
-
+    
     <!-- Mobile Bottom Navigation Bar -->
     <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-3 pt-2 pb-5 flex items-center justify-around shadow-lg">
         <button onclick="switchView('dashboard')" id="mobileNavDashboard" class="flex flex-col items-center justify-center py-1 px-2 text-daihatsu-600 font-bold transition">
@@ -3049,7 +3076,6 @@
             const newPassword = safeGetValue('newPasswordInput').trim();
             const submitBtn = document.getElementById('btnUpdatePass');
         
-            // Ambil data NPK dari sesi user aktif yang sedang login
             const activeUserStr = localStorage.getItem('asv_active_user');
             if (!activeUserStr) {
                 showToast('Gagal', 'Sesi login tidak ditemukan. Silakan login ulang.', 'error');
@@ -3081,13 +3107,12 @@
             .then(res => {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> <span>Simpan Sandi Baru</span>`;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Simpan Kata Sandi Baru</span>`;
                 }
         
                 if (res && res.success) {
                     showToast('Berhasil!', res.message, 'success');
                     playBeepSound('success');
-                    // Kosongkan form input
                     document.getElementById('oldPasswordInput').value = '';
                     document.getElementById('newPasswordInput').value = '';
                 } else {
@@ -3098,7 +3123,7 @@
             .catch(err => {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> <span>Simpan Sandi Baru</span>`;
+                    submitBtn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Simpan Kata Sandi Baru</span>`;
                 }
                 showToast('Koneksi Gagal', 'Tidak dapat terhubung ke server.', 'warning');
             });
