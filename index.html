@@ -791,30 +791,30 @@
         </div>
     </main>
     
-    <!-- Mobile Bottom Navigation Bar -->
-    <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-3 pt-2 pb-5 flex items-center justify-around shadow-lg">
+    <!-- Mobile & Tablet Bottom Navigation Bar (Tampil di HP & Tablet, tersembunyi di Laptop/Desktop "lg") -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-3 pt-2 pb-5 flex items-center justify-around shadow-lg">
         <button onclick="switchView('dashboard')" id="mobileNavDashboard" class="flex flex-col items-center justify-center py-1 px-2 text-daihatsu-600 font-bold transition">
             <i class="fa-solid fa-gauge-high text-base"></i>
             <span class="text-[10px] mt-0.5">Opname</span>
         </button>
-
+    
         <button onclick="switchView('masterdata')" id="mobileNavMasterData" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-boxes-stacked text-base"></i>
             <span class="text-[10px] mt-0.5">Aset</span>
         </button>
-
-        <!-- Tombol Kamera Mengambang yang Presisi di Tengah -->
+    
+        <!-- Tombol Kamera Mengambang di Tengah -->
         <div class="relative -top-6">
             <button onclick="openScanMethodModal()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-daihatsu-700 via-daihatsu-600 to-astra-700 text-white flex items-center justify-center shadow-lg shadow-daihatsu-600/40 border-4 border-white active:scale-95 transition-all">
                 <i class="fa-solid fa-camera text-xl"></i>
             </button>
         </div>
-
+    
         <button onclick="switchView('history')" id="mobileNavHistory" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-clock-rotate-left text-base"></i>
             <span class="text-[10px] mt-0.5">Riwayat</span>
         </button>
-
+    
         <button onclick="switchView('recap')" id="mobileNavRecap" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-layer-group text-base"></i>
             <span class="text-[10px] mt-0.5">Rekap</span>
@@ -969,7 +969,7 @@
                     <div class="flex flex-col gap-2 pt-1">
                         <label class="cursor-pointer bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition w-full">
                             <i class="fa-solid fa-camera-retro"></i>
-                            <span>Buka Kamera HP (Live Camera)</span>
+                            <span>Ambil Foto Langsung dari Kamera</span>
                             <input type="file" id="opnameCameraInput" accept="image/*" capture="environment" onchange="handleCompressedPhoto(event)" class="hidden">
                         </label>
 
@@ -1182,7 +1182,7 @@
                     <div class="w-8 h-8 rounded-lg bg-daihatsu-50 text-daihatsu-600 flex items-center justify-center font-bold">
                         <i class="fa-solid fa-camera-rotate text-sm"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm">Pilih Metode Pemindaian</h3>
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm">Pemindaian Barcode Aset</h3>
                 </div>
                 <button onclick="closeScanMethodModal()" class="text-slate-400 hover:text-slate-600 p-1">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -1190,29 +1190,16 @@
             </div>
 
             <div class="space-y-2">
-                <!-- Opsi 1: Live Scanner Kamera -->
-                <button onclick="selectLiveCameraScan()" class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-daihatsu-50 border border-slate-200 hover:border-daihatsu-300 transition text-left group">
+                <!-- Opsi Wajib Live Camera (Tanpa celah buka galeri file) -->
+                <button onclick="selectLiveCameraScan()" class="w-full flex items-center p-3.5 rounded-xl bg-daihatsu-50 hover:bg-daihatsu-100 border border-daihatsu-200 transition text-left group shadow-xs">
                     <div class="w-10 h-10 rounded-lg bg-daihatsu-600 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-qrcode"></i>
+                        <i class="fa-solid fa-camera"></i>
                     </div>
                     <div class="ml-3 min-w-0 flex-1">
-                        <p class="font-bold text-slate-800 text-xs group-hover:text-daihatsu-700">Scan Live Kamera</p>
-                        <p class="text-[10px] text-slate-500">Gunakan sorotan kamera langsung untuk deteksi barcode otomatis.</p>
+                        <p class="font-bold text-slate-900 text-xs group-hover:text-daihatsu-700">Buka Kamera Langsung (Live Scanner)</p>
+                        <p class="text-[10px] text-slate-500">Gunakan kamera perangkat secara real-time untuk memindai barcode.</p>
                     </div>
                 </button>
-
-                <!-- Opsi 2: Ambil Foto / Upload Barcode via HP -->
-                <label class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-astra-50 border border-slate-200 hover:border-astra-300 transition text-left cursor-pointer group">
-                    <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-file-arrow-up"></i>
-                    </div>
-                    <div class="ml-3 min-w-0 flex-1">
-                        <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Scan Kamera Headphone</p>
-                        <p class="text-[10px] text-slate-500">Ambil foto stiker barcode pakai kamera HP.</p>
-                    </div>
-                    <!-- Input file tersembunyi khusus baca gambar barcode -->
-                    <input type="file" accept="image/*" capture="environment" onchange="handleImageBarcodeUpload(event)" class="hidden">
-                </label>
             </div>
 
             <button onclick="closeScanMethodModal()" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition">
@@ -1976,23 +1963,110 @@
         // --- DASHBOARD KPIS ---
         function renderKPIs() {
             const branchVal = safeGetValue('branchSelector', 'ALL');
+            
+            // Filter aset berdasarkan cabang aktif
             const scopedAssets = branchVal === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(branchVal) || branchVal.startsWith(a.cabang));
+            
+            // Filter log riwayat berdasarkan cabang aktif
             const scopedLogs = branchVal === 'ALL' ? historyLogs : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
 
-            const scannedAssetIds = new Set(scopedLogs.map(h => h.assetId));
-            const total = scopedAssets.length;
-            const scanned = scopedAssets.filter(a => scannedAssetIds.has(a.id)).length;
-            const pending = Math.max(0, total - scanned);
+            const totalAsset = scopedAssets.length;
+            
+            // Hitung unik aset yang sudah terscan (menggunakan ID yang konsisten)
+            const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
+            const totalScanned = scopedAssets.filter(a => scannedAssetIds.has(String(a.id).trim().toLowerCase())).length;
+            const totalPending = Math.max(0, totalAsset - totalScanned);
 
-            const scannedPct = total > 0 ? Math.round((scanned / total) * 100) : 0;
-            const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
+            const scannedPct = totalAsset > 0 ? Math.round((totalScanned / totalAsset) * 100) : 0;
+            const pendingPct = totalAsset > 0 ? Math.round((totalPending / totalAsset) * 100) : 0;
 
-            safeSetText('cardTotalAsset', total);
-            safeSetText('cardScannedAsset', scanned);
+            // 1. Update Teks Kartu KPI Utama
+            safeSetText('cardTotalAsset', totalAsset);
+            safeSetText('cardScannedAsset', totalScanned);
+            safeSetText('cardPendingAsset', totalPending);
             safeSetText('cardScannedPct', `${scannedPct}%`);
-            safeSetText('cardPendingAsset', pending);
             safeSetText('cardPendingPct', `${pendingPct}%`);
-            safeSetText('labelFilterDesc', branchVal === 'ALL' ? 'Master Data Internal ' : `Cabang: ${branchVal}`);
+
+            // 2. Update Welcome Banner Badge Ring & Teks Progres
+            safeSetText('dashOverallRing', `${scannedPct}%`);
+            safeSetText('dashOverallText', `${totalScanned} dari ${totalAsset} Aset Selesai`);
+            
+            const descLabel = branchVal === 'ALL' ? 'Master Data Internal' : `Business Area: ${branchVal}`;
+            safeSetText('labelFilterDesc', descLabel);
+
+            // 3. Hitung Kondisi Fisik dari Log Cabang Aktif
+            let countGood = 0;
+            let countLight = 0;
+            let countHeavy = 0;
+            let countLost = 0;
+
+            scopedLogs.forEach(h => {
+                const st = String(h.statusAset || "").toLowerCase();
+                if (st.includes('baik')) countGood++;
+                else if (st.includes('ringan')) countLight++;
+                else if (st.includes('berat')) countHeavy++;
+                else if (st.includes('hilang')) countLost++;
+            });
+
+            // Update Angka di Grid Kondisi & Legenda Grafik
+            safeSetText('insightGood', countGood);
+            safeSetText('insightLight', countLight);
+            safeSetText('insightHeavy', countHeavy);
+            safeSetText('insightLost', countLost);
+
+            safeSetText('legGood', countGood);
+            safeSetText('legLight', countLight);
+            safeSetText('legHeavy', countHeavy);
+            safeSetText('legLost', countLost);
+            safeSetText('chartTotalScannedLabel', `${scopedLogs.length} Unit Verifikasi`);
+
+            // 4. Render Visual Multi-Color Progress Bar Chart
+            const progressBarEl = document.getElementById('multiColorProgressBar');
+            if (progressBarEl) {
+                const totalScannedLogs = scopedLogs.length;
+                if (totalScannedLogs === 0) {
+                    progressBarEl.innerHTML = `<div style="width: 100%" class="bg-slate-200 rounded-full transition-all duration-500" title="Belum ada data scan"></div>`;
+                } else {
+                    const pGood = (countGood / totalScannedLogs) * 100;
+                    const pLight = (countLight / totalScannedLogs) * 100;
+                    const pHeavy = (countHeavy / totalScannedLogs) * 100;
+                    const pLost = (countLost / totalScannedLogs) * 100;
+
+                    progressBarEl.innerHTML = `
+                        <div style="width: ${pGood}%" class="bg-emerald-500 h-full rounded-l-full transition-all duration-500" title="Kondisi Baik: ${countGood}"></div>
+                        <div style="width: ${pLight}%" class="bg-amber-500 h-full transition-all duration-500" title="Rusak Ringan: ${countLight}"></div>
+                        <div style="width: ${pHeavy}%" class="bg-rose-500 h-full transition-all duration-500" title="Rusak Berat: ${countHeavy}"></div>
+                        <div style="width: ${pLost}%" class="bg-slate-700 h-full rounded-r-full transition-all duration-500" title="Hilang: ${countLost}"></div>
+                    `;
+                }
+            }
+
+            // 5. Render Live Activity Feed (3 Scan Terakhir)
+            const feedContainer = document.getElementById('liveActivityFeed');
+            if (feedContainer) {
+                if (scopedLogs.length === 0) {
+                    feedContainer.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Belum ada aktivitas scan untuk cabang ini.</div>`;
+                } else {
+                    const latestLogs = [...scopedLogs].reverse().slice(0, 3);
+                    let feedHtml = '';
+                    
+                    latestLogs.forEach(log => {
+                        feedHtml += `
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                                <div class="min-w-0 pr-2">
+                                    <p class="font-bold text-slate-800 truncate font-mono">${log.assetId}</p>
+                                    <p class="text-[11px] text-slate-500 truncate">${log.deskripsi || '-'}</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">${log.waktuScan || 'Baru saja'}</span>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">${log.lokasiOpname || log.lokasiSap}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    feedContainer.innerHTML = feedHtml;
+                }
+            }
         }
 
         // --- TABLE 1 RENDERING ---
