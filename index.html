@@ -108,7 +108,7 @@
             <p id="infoModalMessage" class="text-xs text-slate-500 leading-relaxed">Keterangan pesan.</p>
             <button onclick="closeInfoModal()" class="w-full mt-2 py-3 sm:py-2.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition shadow-md">
                 Tutup
-            </button>
+            </>
         </div>
     </div>
 
@@ -121,9 +121,9 @@
             <h3 id="confirmModalTitle" class="font-bold text-slate-900 text-base">Konfirmasi Tindakan</h3>
             <p id="confirmModalMessage" class="text-xs text-slate-500 leading-relaxed">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
             <div class="flex items-center gap-2 pt-2">
-                <button onclick="closeConfirmModal(false)" class="w-1/2 py-3 sm:py-2.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
+                < onclick="closeConfirmModal(false)" class="w-1/2 py-3 sm:py-2.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
                     Batal
-                </button>
+                </>
                 <button id="confirmModalActionBtn" onclick="executePendingConfirmAction()" class="w-1/2 py-3 sm:py-2.5 text-xs font-bold bg-daihatsu-600 hover:bg-daihatsu-700 text-white rounded-xl transition shadow-md">
                     Ya, Lanjutkan
                 </button>
@@ -2085,13 +2085,7 @@
             );
         }
 
-        <button onclick="openLoginModal()" class="px-3 py-1.5 bg-astra-50 hover:bg-astra-100 text-astra-700 font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            <span>Ganti Petugas / Login</span>
-        </button>
 
-    
-        
         // Fungsi khusus untuk menangani Waktu Scan agar tidak berubah jadi tahun
         function formatDisplayTime(timeInput) {
             if (!timeInput) return "-";
@@ -2892,13 +2886,6 @@
                 });
             }
         };
-        // Cek Sesi Petugas yang Tersimpan
-        const savedUser = localStorage.getItem('asv_active_user');
-        if (savedUser) {
-            updateActiveUserUI(JSON.parse(savedUser));
-        } else {
-            openLoginModal(); // Buka modal login otomatis jika belum ada sesi
-        }
     </script>
 </body>
 </html>
