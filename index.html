@@ -335,50 +335,88 @@
         <!-- INSIGHT SECTION: 2 Kolom (Kondisi Fisik & Live Activity Feed) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             
-            <!-- Kolom Kiri (2 Span): Breakdown Kondisi Fisik & Temuan -->
-            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                        <i class="fa-solid fa-stethoscope text-astra-600"></i>
-                        <span>Analisis Kondisi & Kesehatan Aset</span>
-                    </h3>
-                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-semibold">Berdasarkan Log Terscan</span>
+            <!-- Kolom Kiri (2 Span): Visual Grafik & Analisis Kondisi Aset -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3.5 gap-2">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-astra-600"></i>
+                            <span>Grafik & Analisis Kesehatan Aset</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Distribusi status fisik dan temuan opname secara visual</p>
+                    </div>
+                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold self-start sm:self-auto">Real-time Metrics</span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-xl text-center">
+                <!-- 1. MULTI-COLOR PROGRESS BAR CHART (Grafik Batang Proporsional) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span>Proporsi Status Fisik Aset Terscan</span>
+                        <span id="chartTotalScannedLabel" class="text-astra-600 font-mono">0 Unit Verifikasi</span>
+                    </div>
+                    
+                    <!-- Bar Grafik Utama -->
+                    <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-inner p-0.5 gap-0.5" id="multiColorProgressBar">
+                        <!-- Terisi otomatis via JS dengan lebar persentase fleksibel -->
+                        <div style="width: 100%" class="bg-slate-300 rounded-full transition-all duration-500" title="Belum ada data"></div>
+                    </div>
+
+                    <!-- Keterangan Legenda Warna Grafik -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px] font-semibold text-slate-600">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span class="truncate">Baik (<span id="legGood">0</span>)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                            <span class="truncate">Rusak Ringan (<span id="legLight">0</span>)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                            <span class="truncate">Rusak Berat (<span id="legHeavy">0</span>)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-700 shrink-0"></span>
+                            <span class="truncate">Hilang (<span id="legLost">0</span>)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. KARTU DETAIL STATISTIK KONDISI (Grid Modern) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                    <div class="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
                         <span class="text-[10px] font-bold text-emerald-700 uppercase block">Kondisi Baik</span>
                         <h4 id="insightGood" class="text-xl font-black text-emerald-600 mt-1">0</h4>
-                        <span class="text-[10px] text-emerald-600/80">Normal / Aman</span>
+                        <span class="text-[10px] text-emerald-600/80 font-medium">Normal / Aman</span>
                     </div>
-                    <div class="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl text-center">
+                    <div class="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
                         <span class="text-[10px] font-bold text-amber-700 uppercase block">Rusak Ringan</span>
                         <h4 id="insightLight" class="text-xl font-black text-amber-600 mt-1">0</h4>
-                        <span class="text-[10px] text-amber-600/80">Perlu Perbaikan</span>
+                        <span class="text-[10px] text-amber-600/80 font-medium">Perlu Perbaikan</span>
                     </div>
-                    <div class="bg-rose-50/60 border border-rose-100 p-3.5 rounded-xl text-center">
+                    <div class="bg-rose-50/60 border border-rose-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
                         <span class="text-[10px] font-bold text-rose-700 uppercase block">Rusak Berat</span>
                         <h4 id="insightHeavy" class="text-xl font-black text-rose-600 mt-1">0</h4>
-                        <span class="text-[10px] text-rose-600/80">Ganti Unit / Write-off</span>
+                        <span class="text-[10px] text-rose-600/80 font-medium">Ganti Unit / Write-off</span>
                     </div>
-                    <div class="bg-slate-100 border border-slate-200 p-3.5 rounded-xl text-center">
+                    <div class="bg-slate-100 border border-slate-200 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
                         <span class="text-[10px] font-bold text-slate-700 uppercase block">Hilang</span>
                         <h4 id="insightLost" class="text-xl font-black text-slate-800 mt-1">0</h4>
-                        <span class="text-[10px] text-slate-500">Tidak Ditemukan</span>
+                        <span class="text-[10px] text-slate-500 font-medium">Tidak Ditemukan</span>
                     </div>
                 </div>
 
-                <!-- Quick Scanner Action Card di dalam Dashboard -->
-                <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 sm:p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
-                    <div class="space-y-1 text-center sm:text-left">
-                        <h4 class="font-bold text-sm sm:text-base flex items-center justify-center sm:justify-start gap-2">
+                <!-- Quick Scanner Action Card (Hanya tampil di Desktop / Laptop) -->
+                <div class="hidden lg:flex bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 sm:p-5 text-white items-center justify-between gap-4 mt-2 shadow-md">
+                    <div class="space-y-1 text-left">
+                        <h4 class="font-bold text-sm sm:text-base flex items-center gap-2">
                             <i class="fa-solid fa-barcode text-daihatsu-500"></i>
                             <span>Mulai Verifikasi / Scan Fisik Aset</span>
                         </h4>
-                        <p class="text-xs text-slate-300">Gunakan kamera handphone untuk memindai barcode atau input manual kode aset.</p>
+                        <p class="text-xs text-slate-300">Gunakan kamera handphone atau perangkat untuk memindai barcode aset.</p>
                     </div>
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <button onclick="switchView('opname')" class="flex-1 sm:flex-none px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="switchView('opname')" class="px-4 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-camera"></i>
                             <span>Buka Scanner</span>
                         </button>
@@ -3280,31 +3318,31 @@
             safeSetText('insightHeavy', countHeavy);
             safeSetText('insightLost', countLost);
         
-            // --- RENDER LIVE ACTIVITY FEED (3 Scan Terakhir) ---
-            const feedContainer = document.getElementById('liveActivityFeed');
-            if (feedContainer) {
-                if (scopedLogs.length === 0) {
-                    feedContainer.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Belum ada aktivitas scan untuk cabang ini.</div>`;
+            // Update Angka di Legenda Grafik
+            safeSetText('legGood', countGood);
+            safeSetText('legLight', countLight);
+            safeSetText('legHeavy', countHeavy);
+            safeSetText('legLost', countLost);
+            safeSetText('chartTotalScannedLabel', `${scopedLogs.length} Unit Verifikasi`);
+        
+            // --- RENDER VISUAL MULTI-COLOR PROGRESS BAR CHART ---
+            const progressBarEl = document.getElementById('multiColorProgressBar');
+            if (progressBarEl) {
+                const totalScannedLogs = scopedLogs.length;
+                if (totalScannedLogs === 0) {
+                    progressBarEl.innerHTML = `<div style="width: 100%" class="bg-slate-200 rounded-full transition-all duration-500" title="Belum ada data scan"></div>`;
                 } else {
-                    // Ambil 3 data terbaru
-                    const latestLogs = [...scopedLogs].reverse().slice(0, 3);
-                    let feedHtml = '';
-                    
-                    latestLogs.forEach(log => {
-                        feedHtml += `
-                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
-                                <div class="min-w-0 pr-2">
-                                    <p class="font-bold text-slate-800 truncate font-mono">${log.assetId}</p>
-                                    <p class="text-[11px] text-slate-500 truncate">${log.deskripsi || '-'}</p>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">${log.waktuScan || 'Baru saja'}</span>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">${log.lokasiOpname || log.lokasiSap}</p>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    feedContainer.innerHTML = feedHtml;
+                    const pGood = (countGood / totalScannedLogs) * 100;
+                    const pLight = (countLight / totalScannedLogs) * 100;
+                    const pHeavy = (countHeavy / totalScannedLogs) * 100;
+                    const pLost = (countLost / totalScannedLogs) * 100;
+        
+                    progressBarEl.innerHTML = `
+                        <div style="width: ${pGood}%" class="bg-emerald-500 h-full rounded-l-full transition-all duration-500" title="Kondisi Baik: ${countGood}"></div>
+                        <div style="width: ${pLight}%" class="bg-amber-500 h-full transition-all duration-500" title="Rusak Ringan: ${countLight}"></div>
+                        <div style="width: ${pHeavy}%" class="bg-rose-500 h-full transition-all duration-500" title="Rusak Berat: ${countHeavy}"></div>
+                        <div style="width: ${pLost}%" class="bg-slate-700 h-full rounded-r-full transition-all duration-500" title="Hilang: ${countLost}"></div>
+                    `;
                 }
             }
         }
@@ -3337,11 +3375,11 @@
         window.onload = function () {
             // Jalankan sinkronisasi otomatis setiap 8 detik di semua device
             setInterval(() => {
-                const modal = document.getElementById('opnameModal');
-                if (!modal || modal.classList.contains('hidden')) {
-                    loadLogsFromServer();
+                // Pastikan tidak sedang dalam proses input/scan agar tidak mengganggu user
+                if (typeof loadLogsFromServer === 'function') {
+                    loadLogsFromServer(true); // Parameter true agar berjalan silent tanpa memunculkan toast berlebihan
                 }
-            }, 8000); 
+            }, 10000); // 10000 ms = 10 detik
 
             // Cek Sesi Petugas yang Tersimpan
             const savedUser = localStorage.getItem('asv_active_user');
