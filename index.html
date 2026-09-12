@@ -2134,7 +2134,9 @@
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
 
             const metodeInput = document.getElementById('opnameInputMetode');
-            if (metodeInput) metodeInput.value = method;
+            if (metodeInput) {
+                metodeInput.value = method === 'Scan' ? 'Scan (Kamera/Foto)' : 'Manual';
+            }
 
             clearEvidencePhoto();
             toggleAttachmentHighlight();
