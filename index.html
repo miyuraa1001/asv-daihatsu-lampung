@@ -1366,7 +1366,7 @@
             renderDynamicFilteredTable();
         }
 
-        // Fungsi Render Tabel Dinamis (Menyesuaikan dengan sudut pandang Aset / Label dari Dashboard)
+        // Fungsi Render Tabel Dinamis dengan Filter Kondisi yang Presisi & Desain Warna Card Rapi
         function renderDynamicFilteredTable() {
             const searchVal = safeGetValue('filterSearchInput').toLowerCase().trim();
             const branchVal = safeGetValue('branchSelector', 'ALL');
@@ -1398,9 +1398,9 @@
                     return searchTarget.includes(searchVal);
                 });
         
-                if (banner) banner.className = "bg-gradient-to-r from-slate-900 via-astra-900 to-daihatsu-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/50";
+                if (banner) banner.className = "bg-gradient-to-r from-emerald-900 via-slate-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-emerald-500/30";
                 if (badge) {
-                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-500/30 shadow-xs";
+                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-500/40 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> Verified Asset Log`;
                 }
                 if (titleEl) titleEl.innerText = "Daftar Aset yang Sudah Terscan";
@@ -1431,9 +1431,9 @@
                     return searchTarget.includes(searchVal);
                 });
         
-                if (banner) banner.className = "bg-gradient-to-r from-slate-900 via-astra-900 to-daihatsu-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/50";
+                if (banner) banner.className = "bg-gradient-to-r from-daihatsu-950 via-slate-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-daihatsu-500/30";
                 if (badge) {
-                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-950/80 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/30 shadow-xs";
+                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/40 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-hourglass-half text-[10px]"></i> Pending Verification`;
                 }
                 if (titleEl) titleEl.innerText = "Daftar Aset yang Belum Di-scan";
@@ -1453,23 +1453,26 @@
                 `;
         
             } else if (activeDashboardFilterType === 'CONDITION') {
+                // PERBAIKAN LOGIKA FILTER KONDISI AGAR PRESISI (Case-insensitive & Exact match)
                 targetData = scopedLogs.filter(item => {
-                    let matchCondition = false;
-                    
-                    // Menyaring otomatis berdasarkan perspektif (Status Aset vs Status Label) yang dipilih di Dashboard
+                    let itemVal = "";
                     if (activeStatusType === 'aset') {
-                        matchCondition = String(item.statusAset || "").toLowerCase().includes(activeConditionFilter.toLowerCase());
+                        itemVal = String(item.statusAset || "").trim().toLowerCase();
                     } else {
-                        matchCondition = String(item.statusLabel || "").toLowerCase().includes(activeConditionFilter.toLowerCase());
+                        itemVal = String(item.statusLabel || "").trim().toLowerCase();
                     }
-        
+                    const filterVal = String(activeConditionFilter).trim().toLowerCase();
+                    
+                    // Cocokkan secara akurat
+                    const matchCondition = itemVal === filterVal || itemVal.includes(filterVal);
                     const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.keterangan || ''}`.toLowerCase();
                     return matchCondition && searchTarget.includes(searchVal);
                 });
         
-                if (banner) banner.className = "bg-gradient-to-r from-slate-900 via-astra-900 to-daihatsu-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/50";
+                // Desain Warna Card Rincian yang Jauh Lebih Elegan & Kontras (Nuansa Amber/Biru Gelap Professional)
+                if (banner) banner.className = "bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-amber-500/40";
                 if (badge) {
-                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-950/80 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-500/30 shadow-xs";
+                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-500/50 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-chart-pie text-[10px]"></i> Condition Breakdown (${activeStatusType.toUpperCase()})`;
                 }
                 if (titleEl) titleEl.innerText = `Rincian - ${activeStatusType === 'aset' ? 'Status Fisik Aset' : 'Status Label Barcode'}: ${activeConditionFilter}`;
@@ -2412,12 +2415,18 @@
 
             const totalAsset = scopedAssets.length;
             
-            // Hitung unik aset yang sudah terscan (menggunakan ID yang konsisten)
+            // Hitung unik aset yang sudah terscan
             const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
             const totalScanned = scopedAssets.filter(a => scannedAssetIds.has(String(a.id).trim().toLowerCase())).length;
             const totalPending = Math.max(0, totalAsset - totalScanned);
 
-            const scannedPct = totalAsset > 0 ? Math.round((totalScanned / totalAsset) * 100) : 0;
+            // PERBAIKAN: Gunakan 1 atau 2 digit desimal jika angkanya kecil, atau Math.round yang akurat
+            let scannedPct = totalAsset > 0 ? Math.round((totalScanned / totalAsset) * 100) : 0;
+            // Jika ingin persentasenya lebih presisi (misal 2 dari 996 tidak langsung 0%, bisa pakai toFixed(1) jika mau)
+            if (totalScanned > 0 && scannedPct === 0) {
+                scannedPct = ((totalScanned / totalAsset) * 100).toFixed(1); // Contoh: 0.2%
+            }
+            
             const pendingPct = totalAsset > 0 ? Math.round((totalPending / totalAsset) * 100) : 0;
 
             // 1. Update Teks Kartu KPI Utama
@@ -2427,7 +2436,7 @@
             safeSetText('cardScannedPct', `${scannedPct}%`);
             safeSetText('cardPendingPct', `${pendingPct}%`);
 
-            // 2. Update Welcome Banner Badge Ring & Teks Progres
+            // 2. Update Welcome Banner Badge Ring & Teks Progres (Pastikan elemen 'dashOverallRing' ikut terupdate)
             safeSetText('dashOverallRing', `${scannedPct}%`);
             safeSetText('dashOverallText', `${totalScanned} dari ${totalAsset} Aset Selesai`);
             
