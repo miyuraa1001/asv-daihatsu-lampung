@@ -1375,8 +1375,9 @@
                     const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.lokasiOpname} ${item.keterangan || ''}`.toLowerCase();
                     return searchTarget.includes(searchVal);
                 });
-        
-                if (banner) banner.className = "bg-gradient-to-r from-emerald-900 via-slate-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-emerald-500/30";
+
+                const darkBannerStyle = "bg-gradient-to-r from-slate-900 via-astra-900 to-slate-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/60";
+                if (banner) banner.className = darkBannerStyle;
                 if (badge) {
                     badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-500/40 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> Verified Asset Log`;
