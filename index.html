@@ -2119,7 +2119,8 @@
         // --- OPNAME MODAL ACTIONS ---
         function openOpnameModal(assetObj, method) {
             activeOpnameAsset = assetObj;
-            activeOpnameMethod = method || 'Scan'; // Default 'Scan' jika parameter kosong
+            // Pastikan method langsung mengambil parameter atau default ke 'Scan'
+            activeOpnameMethod = method ? String(method).trim() : 'Scan';
             activeEvidencePhoto = null;
         
             safeSetText('opnameModalDeskripsi', assetObj.deskripsi);
@@ -2130,27 +2131,14 @@
             const lokasiInput = document.getElementById('opnameInputLokasiActual');
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
         
+            // Tentukan string teks akhir berdasarkan method yang masuk
+            const isManual = activeOpnameMethod.toLowerCase().includes('manual');
+            const finalMethodText = isManual ? 'Manual' : 'Scan';
+        
+            // Cari elemen input metode opname di modal verifikasi
             const metodeInput = document.getElementById('opnameInputMetode');
-            const metodeText = document.getElementById('opnameMetodeText');
-            const metodeBadgeVisual = document.getElementById('opnameMetodeBadgeVisual');
-        
-            // Menyesuaikan string nilai agar selaras dengan database log ('Scan' atau 'Manual')
-            const normalizedMethod = (String(activeOpnameMethod).toLowerCase().includes('manual')) ? 'Manual' : 'Scan';
-        
             if (metodeInput) {
-                metodeInput.value = normalizedMethod; // Menyimpan nilai 'Scan' atau 'Manual' ke hidden input secara otomatis
-            }
-        
-            if (metodeText && metodeBadgeVisual) {
-                if (normalizedMethod === 'Manual') {
-                    metodeText.innerText = 'Manual (Input Keyboard)';
-                    metodeBadgeVisual.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1.5";
-                    metodeBadgeVisual.innerHTML = `<i class="fa-solid fa-keyboard"></i> <span>Manual (Input Keyboard)</span>`;
-                } else {
-                    metodeText.innerText = 'Scan (Kamera/Foto)';
-                    metodeBadgeVisual.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-astra-100 text-astra-700 inline-flex items-center gap-1.5";
-                    metodeBadgeVisual.innerHTML = `<i class="fa-solid fa-barcode"></i> <span>Scan (Kamera/Foto)</span>`;
-                }
+                metodeInput.value = finalMethodText;
             }
         
             clearEvidencePhoto();
@@ -4021,25 +4009,25 @@
                 showToast('Input Kosong', 'Harap masukkan ID Asset terlebih dahulu.', 'warning');
                 return;
             }
-        
+
             const queryId = manualId.toLowerCase();
-        
+
             // Cari aset di database master
             let foundAsset = assets.find(a => {
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 return dbId === queryId;
             });
-        
+
             if (!foundAsset) {
                 playBeepSound('error');
                 showToast('Aset Tidak Ditemukan', `ID Asset "${manualId}" tidak terdaftar di Master Aset.`, 'warning');
                 return;
             }
-        
+
             closeManualInputModal();
             playBeepSound('success');
             
-            // Pastikan parameter kedua dikirim 'Manual' secara tegas!
+            // Buka modal verifikasi dengan mengirim string 'Manual' secara eksplisit
             openOpnameModal(foundAsset, 'Manual');
         }
 
