@@ -345,7 +345,19 @@
                         </h3>
                         <p class="text-xs text-slate-500 mt-0.5">Distribusi status fisik dan temuan opname secara visual</p>
                     </div>
-                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold self-start sm:self-auto">Real-time Metrics</span>
+                    
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <!-- Tombol Switch Perspektif (Status Aset vs Status Label) -->
+                        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+                            <button onclick="setDashboardPerspective('aset')" id="dashBtnAset" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs">
+                                Status Aset
+                            </button>
+                            <button onclick="setDashboardPerspective('label')" id="dashBtnLabel" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900">
+                                Status Label
+                            </button>
+                        </div>
+                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold hidden sm:inline-block">Real-time Metrics</span>
+                    </div>
                 </div>
 
                 <!-- 1. MULTI-COLOR PROGRESS BAR CHART (Grafik Batang Proporsional) -->
@@ -1318,10 +1330,31 @@
         // API Backend Proxy URL
         const PROXY_API_URL = "/api/proxy";
 
-       function filterMasterFromCondition(conditionName) {
+       // --- FUNGSI NAVIGASI KLIK KARTU KPI DASHBOARD ---
+        function filterMasterFromDashboard(statusType) {
+            if (statusType === 'ALL') {
+                // Jika kartu "Total Aset Terdaftar" diklik -> Buka halaman Daftar Master Aset
+                currentMasterStatusFilter = 'ALL';
+                switchView('masterdata');
+            } else {
+                // Jika kartu "Aset Terscan" ('SCANNED') atau "Belum Di-scan" ('PENDING') diklik -> Buka halaman khusus tabel dinamis
+                activeDashboardFilterType = statusType; 
+                switchView('scannedAssetView');
+            }
+        }
+        
+        // --- FUNGSI NAVIGASI KLIK KARTU KONDISI FISIK ---
+        function filterMasterFromCondition(conditionName) {
             activeDashboardFilterType = 'CONDITION'; 
             activeConditionFilter = conditionName;
             activeStatusType = 'aset'; // Default awal melihat dari status fisik aset
+            
+            // Pastikan tombol switch kembali aktif ke mode "Status Fisik Aset" secara visual
+            const btnAset = document.getElementById('btnSwitchAset');
+            const btnLabel = document.getElementById('btnSwitchLabel');
+            if (btnAset) btnAset.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs";
+            if (btnLabel) btnLabel.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-200 text-slate-700 hover:bg-slate-300";
+        
             switchView('scannedAssetView');
         }
 
@@ -2371,11 +2404,14 @@
             let countLost = 0;
 
             scopedLogs.forEach(h => {
-                const st = String(h.statusAset || "").toLowerCase();
+                // Membaca status berdasarkan pilihan switch (statusAset atau statusLabel)
+                const targetVal = activeStatusType === 'aset' ? (h.statusAset || "") : (h.statusLabel || "");
+                const st = String(targetVal).toLowerCase();
+        
                 if (st.includes('baik')) countGood++;
-                else if (st.includes('ringan')) countLight++;
+                else if (st.includes('ringan') || st.includes('rusak')) countLight++;
                 else if (st.includes('berat')) countHeavy++;
-                else if (st.includes('hilang')) countLost++;
+                else if (st.includes('hilang') || st.includes('tidak ada')) countLost++;
             });
 
             // Update Angka di Grid Kondisi & Legenda Grafik
@@ -3823,6 +3859,25 @@
                     `;
                 }
             }
+        }
+
+        // Fungsi untuk mengubah sudut pandang analisis di dashboard (Aset vs Label)
+        function setDashboardPerspective(perspectiveType) {
+            activeStatusType = perspectiveType; // 'aset' atau 'label'
+        
+            const btnAset = document.getElementById('dashBtnAset');
+            const btnLabel = document.getElementById('dashBtnLabel');
+        
+            if (perspectiveType === 'aset') {
+                if (btnAset) btnAset.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs";
+                if (btnLabel) btnLabel.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900";
+            } else {
+                if (btnLabel) btnLabel.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs";
+                if (btnAset) btnAset.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900";
+            }
+        
+            // Perbarui perhitungan grafik dan angka di kartu kondisi secara real-time
+            renderKPIs();
         }
 
         function handleImageBarcodeUpload(event) {
