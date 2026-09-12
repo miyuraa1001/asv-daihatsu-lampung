@@ -1333,18 +1333,11 @@
             }
         }
         
-        // --- FUNGSI NAVIGASI KLIK KARTU KONDISI FISIK ---
+        // --- FUNGSI Klik KARTU KONDISI (MEMBAWA STATUS PERSPEKTIF AKTIF) ---
         function filterMasterFromCondition(conditionName) {
             activeDashboardFilterType = 'CONDITION'; 
             activeConditionFilter = conditionName;
-            activeStatusType = 'aset'; // Default awal melihat dari status fisik aset
-            
-            // Pastikan tombol switch kembali aktif ke mode "Status Fisik Aset" secara visual
-            const btnAset = document.getElementById('btnSwitchAset');
-            const btnLabel = document.getElementById('btnSwitchLabel');
-            if (btnAset) btnAset.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs";
-            if (btnLabel) btnLabel.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-200 text-slate-700 hover:bg-slate-300";
-        
+            // activeStatusType sudah bernilai 'aset' atau 'label' sesuai tombol switch yang sedang aktif di dashboard!
             switchView('scannedAssetView');
         }
 
@@ -1366,7 +1359,7 @@
             renderDynamicFilteredTable();
         }
 
-        // --- RENDER TABEL RINCIAN (CONDITION BREAKDOWN) ---
+        // --- RENDER TABEL RINCIAN DENGAN JUDUL & LABEL DINAMIS YANG SESUAI ---
         function renderDynamicFilteredTable() {
             const searchVal = safeGetValue('filterSearchInput').toLowerCase().trim();
             const branchVal = safeGetValue('branchSelector', 'ALL');
@@ -1447,7 +1440,7 @@
         
             } else if (activeDashboardFilterType === 'CONDITION') {
                 targetData = scopedLogs.filter(item => {
-                    // Membaca kolom yang tepat sesuai tombol switch aktif di dashboard ('aset' atau 'label')
+                    // Membaca kolom yang tepat sesuai tombol switch aktif ('aset' atau 'label')
                     const targetVal = activeStatusType === 'aset' ? (item.statusAset || "") : (item.statusLabel || "");
                     const itemVal = String(targetVal).trim().toLowerCase();
                     const filterVal = String(activeConditionFilter).trim().toLowerCase();
@@ -1469,13 +1462,16 @@
                     return matchCondition && searchTarget.includes(searchVal);
                 });
         
+                // Label teks dinamis untuk banner rincian (Menampilkan apakah ini Aset atau Label)
+                const perspectiveLabel = activeStatusType === 'aset' ? 'Status Fisik Aset' : 'Status Label Barcode';
+        
                 if (banner) banner.className = "bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-amber-500/40";
                 if (badge) {
                     badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-500/50 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-chart-pie text-[10px]"></i> Condition Breakdown (${activeStatusType.toUpperCase()})`;
                 }
-                if (titleEl) titleEl.innerText = `Rincian - ${activeStatusType === 'aset' ? 'Status Fisik Aset' : 'Status Label Barcode'}: ${activeConditionFilter}`;
-                if (descEl) descEl.innerText = `Menampilkan daftar unit berdasarkan kriteria ${activeStatusType === 'aset' ? 'kondisi fisik' : 'kondisi label'} yang dipilih dari dashboard.`;
+                if (titleEl) titleEl.innerText = `Rincian - ${perspectiveLabel}: ${activeConditionFilter}`;
+                if (descEl) descEl.innerText = `Menampilkan daftar unit berdasarkan kriteria ${perspectiveLabel.toLowerCase()} yang dipilih dari dashboard.`;
                 
                 thead.innerHTML = `
                     <tr>
@@ -1563,7 +1559,7 @@
             safeSetText('filterTableCountSummary', `Menampilkan ${targetData.length} unit`);
         }
         
-        // Fungsi Export Excel Khusus untuk Halaman Rincian & Tabel Dinamis
+        // --- FUNGSI EXPORT EXCEL SESUAI DATA RINCIAN YANG TAMPIL ---
         function exportFilterViewToExcel() {
             try {
                 const searchVal = safeGetValue('filterSearchInput').toLowerCase().trim();
@@ -1583,7 +1579,6 @@
                 let filename = "";
         
                 if (activeDashboardFilterType === 'SCANNED') {
-                    // Filter sesuai data terscan yang sedang tampil
                     const targetData = scopedLogs.filter(item => {
                         const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.lokasiOpname} ${item.keterangan || ''}`.toLowerCase();
                         return searchTarget.includes(searchVal);
@@ -1606,7 +1601,6 @@
                     filename = `Aset_Terscan_${branchVal}_${new Date().toISOString().slice(0,10)}.xlsx`;
         
                 } else if (activeDashboardFilterType === 'PENDING') {
-                    // Filter sesuai data pending/belum di-scan yang sedang tampil
                     const pendingAssets = scopedMasterAssets.filter(a => !scannedAssetIds.has(String(a.id).trim().toLowerCase()));
                     const targetData = pendingAssets.filter(item => {
                         const searchTarget = `${item.id} ${item.subNumber} ${item.deskripsi} ${item.lokasi}`.toLowerCase();
@@ -1626,13 +1620,23 @@
                     filename = `Aset_Belum_Discan_${branchVal}_${new Date().toISOString().slice(0,10)}.xlsx`;
         
                 } else if (activeDashboardFilterType === 'CONDITION') {
-                    // Filter sesuai rincian kondisi spesifik (misal: Rusak Ringan / Baik, berdasarkan Aset atau Label) yang sedang tampil
+                    // SINKRONISASI LOGIKA FILTER EKSPOR DENGAN TABEL RINCIAN
                     const targetData = scopedLogs.filter(item => {
+                        const targetVal = activeStatusType === 'aset' ? (item.statusAset || "") : (item.statusLabel || "");
+                        const itemVal = String(targetVal).trim().toLowerCase();
+                        const filterVal = String(activeConditionFilter).trim().toLowerCase();
+        
                         let matchCondition = false;
-                        if (activeStatusType === 'aset') {
-                            matchCondition = String(item.statusAset || "").toLowerCase().includes(activeConditionFilter.toLowerCase());
+                        if (filterVal.includes('baik')) {
+                            matchCondition = itemVal.includes('baik');
+                        } else if (filterVal.includes('ringan') || filterVal.includes('rusak')) {
+                            matchCondition = itemVal.includes('ringan') || itemVal.includes('rusak');
+                        } else if (filterVal.includes('berat')) {
+                            matchCondition = itemVal.includes('berat');
+                        } else if (filterVal.includes('hilang') || filterVal.includes('tidak')) {
+                            matchCondition = itemVal.includes('hilang') || itemVal.includes('tidak');
                         } else {
-                            matchCondition = String(item.statusLabel || "").toLowerCase().includes(activeConditionFilter.toLowerCase());
+                            matchCondition = itemVal === filterVal || itemVal.includes(filterVal);
                         }
         
                         const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.keterangan || ''}`.toLowerCase();
