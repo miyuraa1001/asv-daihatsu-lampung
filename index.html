@@ -1366,7 +1366,7 @@
             renderDynamicFilteredTable();
         }
 
-        // Fungsi Render Tabel Dinamis dengan Filter Kondisi yang Presisi & Desain Warna Card Rapi
+        // --- RENDER TABEL RINCIAN (CONDITION BREAKDOWN) ---
         function renderDynamicFilteredTable() {
             const searchVal = safeGetValue('filterSearchInput').toLowerCase().trim();
             const branchVal = safeGetValue('branchSelector', 'ALL');
@@ -1380,14 +1380,8 @@
             if (!tbody || !thead) return;
             tbody.innerHTML = '';
         
-            const scopedMasterAssets = branchVal === 'ALL' 
-                ? assets 
-                : assets.filter(a => a.cabang.startsWith(branchVal) || branchVal.startsWith(a.cabang));
-        
-            const scopedLogs = branchVal === 'ALL' 
-                ? historyLogs 
-                : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
-        
+            const scopedMasterAssets = branchVal === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(branchVal) || branchVal.startsWith(a.cabang));
+            const scopedLogs = branchVal === 'ALL' ? historyLogs : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
             const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
         
             let targetData = [];
@@ -1425,7 +1419,6 @@
         
             } else if (activeDashboardFilterType === 'PENDING') {
                 const pendingAssets = scopedMasterAssets.filter(a => !scannedAssetIds.has(String(a.id).trim().toLowerCase()));
-                
                 targetData = pendingAssets.filter(item => {
                     const searchTarget = `${item.id} ${item.subNumber} ${item.deskripsi} ${item.lokasi}`.toLowerCase();
                     return searchTarget.includes(searchVal);
@@ -1453,23 +1446,29 @@
                 `;
         
             } else if (activeDashboardFilterType === 'CONDITION') {
-                // PERBAIKAN LOGIKA FILTER KONDISI AGAR PRESISI (Case-insensitive & Exact match)
                 targetData = scopedLogs.filter(item => {
-                    let itemVal = "";
-                    if (activeStatusType === 'aset') {
-                        itemVal = String(item.statusAset || "").trim().toLowerCase();
-                    } else {
-                        itemVal = String(item.statusLabel || "").trim().toLowerCase();
-                    }
+                    // Membaca kolom yang tepat sesuai tombol switch aktif di dashboard ('aset' atau 'label')
+                    const targetVal = activeStatusType === 'aset' ? (item.statusAset || "") : (item.statusLabel || "");
+                    const itemVal = String(targetVal).trim().toLowerCase();
                     const filterVal = String(activeConditionFilter).trim().toLowerCase();
-                    
-                    // Cocokkan secara akurat
-                    const matchCondition = itemVal === filterVal || itemVal.includes(filterVal);
+        
+                    let matchCondition = false;
+                    if (filterVal.includes('baik')) {
+                        matchCondition = itemVal.includes('baik');
+                    } else if (filterVal.includes('ringan') || filterVal.includes('rusak')) {
+                        matchCondition = itemVal.includes('ringan') || itemVal.includes('rusak');
+                    } else if (filterVal.includes('berat')) {
+                        matchCondition = itemVal.includes('berat');
+                    } else if (filterVal.includes('hilang') || filterVal.includes('tidak')) {
+                        matchCondition = itemVal.includes('hilang') || itemVal.includes('tidak');
+                    } else {
+                        matchCondition = itemVal === filterVal || itemVal.includes(filterVal);
+                    }
+        
                     const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.keterangan || ''}`.toLowerCase();
                     return matchCondition && searchTarget.includes(searchVal);
                 });
         
-                // Desain Warna Card Rincian yang Jauh Lebih Elegan & Kontras (Nuansa Amber/Biru Gelap Professional)
                 if (banner) banner.className = "bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-amber-500/40";
                 if (badge) {
                     badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-500/50 shadow-xs";
@@ -2403,7 +2402,7 @@
             if (inputEl) inputEl.value = assetId;
         }
 
-        // --- DASHBOARD KPIS ---
+        // --- DASHBOARD KPIS & CONDITION COUNTER ---
         function renderKPIs() {
             const branchVal = safeGetValue('branchSelector', 'ALL');
             
@@ -2412,66 +2411,69 @@
             
             // Filter log riwayat berdasarkan cabang aktif
             const scopedLogs = branchVal === 'ALL' ? historyLogs : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
-
+        
             const totalAsset = scopedAssets.length;
             
             // Hitung unik aset yang sudah terscan
             const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
             const totalScanned = scopedAssets.filter(a => scannedAssetIds.has(String(a.id).trim().toLowerCase())).length;
             const totalPending = Math.max(0, totalAsset - totalScanned);
-
-            // PERBAIKAN: Gunakan 1 atau 2 digit desimal jika angkanya kecil, atau Math.round yang akurat
+        
             let scannedPct = totalAsset > 0 ? Math.round((totalScanned / totalAsset) * 100) : 0;
-            // Jika ingin persentasenya lebih presisi (misal 2 dari 996 tidak langsung 0%, bisa pakai toFixed(1) jika mau)
             if (totalScanned > 0 && scannedPct === 0) {
-                scannedPct = ((totalScanned / totalAsset) * 100).toFixed(1); // Contoh: 0.2%
+                scannedPct = ((totalScanned / totalAsset) * 100).toFixed(1);
             }
             
             const pendingPct = totalAsset > 0 ? Math.round((totalPending / totalAsset) * 100) : 0;
-
+        
             // 1. Update Teks Kartu KPI Utama
             safeSetText('cardTotalAsset', totalAsset);
             safeSetText('cardScannedAsset', totalScanned);
             safeSetText('cardPendingAsset', totalPending);
             safeSetText('cardScannedPct', `${scannedPct}%`);
             safeSetText('cardPendingPct', `${pendingPct}%`);
-
-            // 2. Update Welcome Banner Badge Ring & Teks Progres (Pastikan elemen 'dashOverallRing' ikut terupdate)
+        
+            // 2. Update Welcome Banner Badge Ring & Teks Progres
             safeSetText('dashOverallRing', `${scannedPct}%`);
             safeSetText('dashOverallText', `${totalScanned} dari ${totalAsset} Aset Selesai`);
             
             const descLabel = branchVal === 'ALL' ? 'Master Data Internal' : `Business Area: ${branchVal}`;
             safeSetText('labelFilterDesc', descLabel);
-
-            // 3. Hitung Kondisi Fisik dari Log Cabang Aktif
+        
+            // 3. Hitung Kondisi Berdasarkan Perspektif Aktif (Aset vs Label)
             let countGood = 0;
             let countLight = 0;
             let countHeavy = 0;
             let countLost = 0;
-
-            scopedLogs.forEach(h => {
-                // Membaca status berdasarkan pilihan switch (statusAset atau statusLabel)
-                const targetVal = activeStatusType === 'aset' ? (h.statusAset || "") : (h.statusLabel || "");
-                const st = String(targetVal).toLowerCase();
         
-                if (st.includes('baik')) countGood++;
-                else if (st.includes('ringan') || st.includes('rusak')) countLight++;
-                else if (st.includes('berat')) countHeavy++;
-                else if (st.includes('hilang') || st.includes('tidak ada')) countLost++;
+            scopedLogs.forEach(h => {
+                // Membaca status berdasarkan pilihan switch aktif di dashboard (statusAset atau statusLabel)
+                const targetVal = activeStatusType === 'aset' ? (h.statusAset || "") : (h.statusLabel || "");
+                const st = String(targetVal).trim().toLowerCase();
+        
+                if (st.includes('baik')) {
+                    countGood++;
+                } else if (st.includes('ringan') || st.includes('rusak')) {
+                    countLight++;
+                } else if (st.includes('berat')) {
+                    countHeavy++;
+                } else if (st.includes('hilang') || st.includes('tidak')) {
+                    countLost++;
+                }
             });
-
+        
             // Update Angka di Grid Kondisi & Legenda Grafik
             safeSetText('insightGood', countGood);
             safeSetText('insightLight', countLight);
             safeSetText('insightHeavy', countHeavy);
             safeSetText('insightLost', countLost);
-
+        
             safeSetText('legGood', countGood);
             safeSetText('legLight', countLight);
             safeSetText('legHeavy', countHeavy);
             safeSetText('legLost', countLost);
             safeSetText('chartTotalScannedLabel', `${scopedLogs.length} Unit Verifikasi`);
-
+        
             // 4. Render Visual Multi-Color Progress Bar Chart
             const progressBarEl = document.getElementById('multiColorProgressBar');
             if (progressBarEl) {
@@ -2483,7 +2485,7 @@
                     const pLight = (countLight / totalScannedLogs) * 100;
                     const pHeavy = (countHeavy / totalScannedLogs) * 100;
                     const pLost = (countLost / totalScannedLogs) * 100;
-
+        
                     progressBarEl.innerHTML = `
                         <div style="width: ${pGood}%" class="bg-emerald-500 h-full rounded-l-full transition-all duration-500" title="Kondisi Baik: ${countGood}"></div>
                         <div style="width: ${pLight}%" class="bg-amber-500 h-full transition-all duration-500" title="Rusak Ringan: ${countLight}"></div>
@@ -2492,8 +2494,8 @@
                     `;
                 }
             }
-
-            // 5. Render Live Activity Feed (3 Scan Terakhir) yang Presisi & Rapih
+        
+            // 5. Render Live Activity Feed (3 Scan Terakhir)
             const feedContainer = document.getElementById('liveActivityFeed');
             if (feedContainer) {
                 if (scopedLogs.length === 0) {
@@ -2503,7 +2505,6 @@
                     let feedHtml = '';
                     
                     latestLogs.forEach(log => {
-                        // Bersihkan string waktu jika terlanjur panjang berformat GMT/ISO
                         let rawTime = String(log.waktuScan || "").trim();
                         let displayTime = rawTime;
                         if (rawTime.includes("GMT") || rawTime.includes("T") || rawTime.length > 10) {
@@ -2519,7 +2520,7 @@
                         } else {
                             displayTime = rawTime.replace(/[.]/g, ':');
                         }
-
+        
                         feedHtml += `
                             <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
                                 <div class="min-w-0 flex-1">
