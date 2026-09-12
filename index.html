@@ -638,6 +638,14 @@
 
     <!-- VIEW: HALAMAN KHUSUS FILTER KARTU DASHBOARD (TERSCAN / BELUM DISCAN) -->
     <main id="scannedAssetView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
+
+        <!-- Tombol Kembali ke Dashboard (Praktis untuk Desktop & Mobile) -->
+        <div>
+            <button onclick="switchView('dashboard')" class="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold text-xs rounded-xl shadow-2xs transition group">
+                <i class="fa-solid fa-arrow-left text-astra-600 group-hover:-translate-x-0.5 transition-transform"></i>
+                <span>Kembali ke Dashboard</span>
+            </button>
+        </div>
         
         <!-- Header Info Banner -->
         <div id="filterViewBanner" class="bg-gradient-to-r from-slate-900 via-astra-900 to-daihatsu-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/50">
