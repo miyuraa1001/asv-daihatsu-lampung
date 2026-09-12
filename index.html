@@ -2131,14 +2131,30 @@
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
 
             const metodeInput = document.getElementById('opnameInputMetode');
+            const metodeText = document.getElementById('opnameMetodeText');
+            const metodeBadgeVisual = document.getElementById('opnameMetodeBadgeVisual');
+        
             if (metodeInput) {
-                metodeInput.value = method === 'Scan' ? 'Scan (Kamera/Foto)' : 'Manual';
+                metodeInput.value = method; // Menyimpan nilai 'Scan' atau 'Manual' secara rahasia/otomatis
             }
-
+        
+            if (metodeText && metodeBadgeVisual) {
+                if (method === 'Manual') {
+                    metodeText.innerText = 'Manual (Input Keyboard)';
+                    metodeBadgeVisual.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1.5";
+                    metodeBadgeVisual.innerHTML = `<i class="fa-solid fa-keyboard"></i> <span>Manual (Input Keyboard)</span>`;
+                } else {
+                    metodeText.innerText = 'Scan (Kamera/Foto)';
+                    metodeBadgeVisual.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-astra-100 text-astra-700 inline-flex items-center gap-1.5";
+                    metodeBadgeVisual.innerHTML = `<i class="fa-solid fa-barcode"></i> <span>Scan (Kamera/Foto)</span>`;
+                }
+            }
+        
             clearEvidencePhoto();
             toggleAttachmentHighlight();
-
+        
             const modal = document.getElementById('opnameModal');
+            if (modal) modal.classList.add('hidden'); // Reset modal dulu jika terbuka
             if (modal) modal.classList.remove('hidden');
         }
 
