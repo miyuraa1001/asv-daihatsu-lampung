@@ -644,8 +644,7 @@
                 <span class="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5 block" id="filterViewTotalCount">0 Unit</span>
             </div>
         </div>
-
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        
         <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
             
             <!-- Toolbar Cari & Export -->
@@ -1370,13 +1369,15 @@
         
             let targetData = [];
         
+            // Definisikan style warna gelap yang konsisten untuk banner rincian di semua menu
+            const darkBannerStyle = "bg-gradient-to-r from-slate-900 via-astra-900 to-slate-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/60";
+        
             if (activeDashboardFilterType === 'SCANNED') {
                 targetData = scopedLogs.filter(item => {
                     const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.lokasiOpname} ${item.keterangan || ''}`.toLowerCase();
                     return searchTarget.includes(searchVal);
                 });
-
-                const darkBannerStyle = "bg-gradient-to-r from-slate-900 via-astra-900 to-slate-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-slate-700/60";
+        
                 if (banner) banner.className = darkBannerStyle;
                 if (badge) {
                     badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-500/40 shadow-xs";
@@ -1409,7 +1410,7 @@
                     return searchTarget.includes(searchVal);
                 });
         
-                if (banner) banner.className = "bg-gradient-to-r from-daihatsu-950 via-slate-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-daihatsu-500/30";
+                if (banner) banner.className = darkBannerStyle;
                 if (badge) {
                     badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/40 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-hourglass-half text-[10px]"></i> Pending Verification`;
@@ -1457,7 +1458,7 @@
                 // Label teks dinamis untuk banner rincian (Menampilkan apakah ini Aset atau Label)
                 const perspectiveLabel = activeStatusType === 'aset' ? 'Status Fisik Aset' : 'Status Label Barcode';
         
-                if (banner) banner.className = "bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all border border-amber-500/40";
+                if (banner) banner.className = darkBannerStyle;
                 if (badge) {
                     badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-950/90 px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-500/50 shadow-xs";
                     badge.innerHTML = `<i class="fa-solid fa-chart-pie text-[10px]"></i> Condition Breakdown (${activeStatusType.toUpperCase()})`;
@@ -2417,10 +2418,18 @@
         
             let scannedPct = totalAsset > 0 ? Math.round((totalScanned / totalAsset) * 100) : 0;
             if (totalScanned > 0 && scannedPct === 0) {
-                scannedPct = ((totalScanned / totalAsset) * 100).toFixed(1);
+                scannedPct = Number(((totalScanned / totalAsset) * 100).toFixed(1)); // Menghasilkan angka desimal misal: 0.2
             }
             
-            const pendingPct = totalAsset > 0 ? Math.round((totalPending / totalAsset) * 100) : 0;
+            // SINKRONISASI PERSENTASE PENDING: Jika ada desimal, hitung sisa akurat dari 100%
+            let pendingPct = totalAsset > 0 ? Math.round((totalPending / totalAsset) * 100) : 0;
+            if (totalScanned > 0 && typeof scannedPct === 'number' && !Number.isInteger(scannedPct)) {
+                pendingPct = (100 - scannedPct).toFixed(1); // Menghasilkan 99.8%
+            } else if (totalScanned > 0 && totalPending === totalAsset) {
+                pendingPct = 100;
+            } else if (totalScanned === totalAsset) {
+                pendingPct = 0;
+            }
         
             // 1. Update Teks Kartu KPI Utama
             safeSetText('cardTotalAsset', totalAsset);
