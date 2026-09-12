@@ -875,6 +875,42 @@
             <span class="text-[10px] mt-0.5">Rekap</span>
         </button>
     </nav>
+
+    <!-- MODAL CUSTOM: INPUT MANUAL KODE ASET -->
+    <div id="manualInputModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4" onclick="closeManualInputModal()">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 border border-slate-200 transform transition-all" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-daihatsu-50 text-daihatsu-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-keyboard text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-sm">Input Manual Kode Aset</h3>
+                        <p class="text-[10px] text-slate-500">Masukkan ID Asset atau nomor inventaris</p>
+                    </div>
+                </div>
+                <button onclick="closeManualInputModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+    
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">ID Asset / Nomor Aset</label>
+                    <input type="text" id="manualAssetCodeInput" placeholder="cth: 103000003190" class="w-full border border-slate-300 rounded-xl p-3 bg-slate-50 text-slate-900 font-mono text-xs font-bold focus:ring-2 focus:ring-daihatsu-500 focus:bg-white focus:outline-none uppercase">
+                </div>
+            </div>
+    
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" onclick="closeManualInputModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Batal
+                </button>
+                <button type="button" onclick="submitManualAssetCode()" class="w-1/2 py-2.5 bg-daihatsu-600 hover:bg-daihatsu-700 text-white font-bold text-xs rounded-xl shadow-md transition">
+                    Cari & Verifikasi
+                </button>
+            </div>
+        </div>
+    </div>
     
     <!-- MODAL LOGIN AUDITOR / PETUGAS -->
     <div id="loginModal" class="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeLoginModal()">
@@ -3939,17 +3975,38 @@
             renderKPIs();
         }
 
-        // Membuka prompt atau modal kecil untuk mengetik kode aset secara manual
+        // --- MODAL INPUT MANUAL KODE ASET ---
+
+        // 1. Membuka modal custom input manual
         function openManualInputPrompt() {
             closeScanMethodModal();
+            const modal = document.getElementById('manualInputModal');
+            const inputField = document.getElementById('manualAssetCodeInput');
             
-            // Meminta user memasukkan ID Asset / No Aset secara manual
-            const manualId = prompt("Masukkan ID Asset / Nomor Aset secara manual:");
-            if (!manualId || !manualId.trim()) return;
+            if (modal && inputField) {
+                inputField.value = '';
+                modal.classList.remove('hidden');
+                setTimeout(() => inputField.focus(), 100); // Otomatis fokus ke kotak teks saat modal terbuka
+            }
+        }
         
-            const queryId = manualId.trim().toLowerCase();
+        // 2. Menutup modal custom input manual
+        function closeManualInputModal() {
+            const modal = document.getElementById('manualInputModal');
+            if (modal) modal.classList.add('hidden');
+        }
         
-            // Cari aset di database master
+        // 3. Memproses kode yang diketik di modal custom
+        function submitManualAssetCode() {
+            const manualId = safeGetValue('manualAssetCodeInput').trim();
+            if (!manualId) {
+                showToast('Input Kosong', 'Harap masukkan ID Asset terlebih dahulu.', 'warning');
+                return;
+            }
+        
+            const queryId = manualId.toLowerCase();
+        
+            // Cari aset di database master (mendukung properti id atau "ID Asset")
             let foundAsset = assets.find(a => {
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 return dbId === queryId;
@@ -3961,8 +4018,10 @@
                 return;
             }
         
+            closeManualInputModal();
             playBeepSound('success');
-            // Buka modal opname dengan metode otomatis 'Manual'
+            
+            // Buka modal opname dengan metode otomatis terisi 'Manual'
             openOpnameModal(foundAsset, 'Manual');
         }
 
