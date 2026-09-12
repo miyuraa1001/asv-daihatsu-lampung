@@ -1924,19 +1924,19 @@
         function triggerOpnameLookup(method = 'Scan') {
             const inputEl = document.getElementById('mainBarcodeInput');
             if (!inputEl) return;
-
+        
             const barcodeText = inputEl.value.trim();
             if (!barcodeText) {
                 playBeepSound('error');
                 showToast('Input Kosong', 'Harap masukkan ID Asset barcode terlebih dahulu.', 'warning');
                 return;
             }
-
+        
             let cleanedText = barcodeText.replace(/[-_]/g, " ");
             let parts = cleanedText.split(/\s+/);
             let scannedId = parts[0].trim().toLowerCase();
             let scannedSub = (parts[1] || "0").trim().toLowerCase();
-
+        
             let foundAsset = assets.find(a => {
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
@@ -1945,14 +1945,14 @@
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 return dbId === scannedId;
             });
-
+        
             if (!foundAsset) {
                 playBeepSound('error');
                 showToast('Aset Tidak Ditemukan', `Nomor Barcode "${barcodeText}" tidak terdaftar di Master Aset.`, 'warning');
                 return;
             }
-
-            // Langsung buka modal verifikasi dan bawa data aset yang ditemukan
+        
+            // Meneruskan parameter method ('Scan' atau 'Manual') secara akurat ke modal opname
             openOpnameModal(foundAsset, method);
         }
 
