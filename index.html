@@ -2119,27 +2119,30 @@
         // --- OPNAME MODAL ACTIONS ---
         function openOpnameModal(assetObj, method) {
             activeOpnameAsset = assetObj;
-            activeOpnameMethod = method;
+            activeOpnameMethod = method || 'Scan'; // Default 'Scan' jika parameter kosong
             activeEvidencePhoto = null;
-
+        
             safeSetText('opnameModalDeskripsi', assetObj.deskripsi);
             safeSetText('opnameModalNomorSub', `${assetObj.id} ${assetObj.subNumber || '0'}`);
             safeSetText('opnameModalCabang', `${assetObj.cabang} - ${branchNames[assetObj.cabang] || ''}`);
             safeSetText('opnameModalLokasiSAP', assetObj.lokasi);
-
+        
             const lokasiInput = document.getElementById('opnameInputLokasiActual');
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
-
+        
             const metodeInput = document.getElementById('opnameInputMetode');
             const metodeText = document.getElementById('opnameMetodeText');
             const metodeBadgeVisual = document.getElementById('opnameMetodeBadgeVisual');
         
+            // Menyesuaikan string nilai agar selaras dengan database log ('Scan' atau 'Manual')
+            const normalizedMethod = (String(activeOpnameMethod).toLowerCase().includes('manual')) ? 'Manual' : 'Scan';
+        
             if (metodeInput) {
-                metodeInput.value = method; // Menyimpan nilai 'Scan' atau 'Manual' secara rahasia/otomatis
+                metodeInput.value = normalizedMethod; // Menyimpan nilai 'Scan' atau 'Manual' ke hidden input secara otomatis
             }
         
             if (metodeText && metodeBadgeVisual) {
-                if (method === 'Manual') {
+                if (normalizedMethod === 'Manual') {
                     metodeText.innerText = 'Manual (Input Keyboard)';
                     metodeBadgeVisual.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1.5";
                     metodeBadgeVisual.innerHTML = `<i class="fa-solid fa-keyboard"></i> <span>Manual (Input Keyboard)</span>`;
@@ -4011,7 +4014,7 @@
             if (modal) modal.classList.add('hidden');
         }
         
-        // 3. Memproses kode yang diketik di modal custom
+        // 3. Memproses kode yang diketik di modal custom input manual
         function submitManualAssetCode() {
             const manualId = safeGetValue('manualAssetCodeInput').trim();
             if (!manualId) {
@@ -4021,7 +4024,7 @@
         
             const queryId = manualId.toLowerCase();
         
-            // Cari aset di database master (mendukung properti id atau "ID Asset")
+            // Cari aset di database master
             let foundAsset = assets.find(a => {
                 let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
                 return dbId === queryId;
@@ -4036,7 +4039,7 @@
             closeManualInputModal();
             playBeepSound('success');
             
-            // Buka modal opname dengan metode otomatis terisi 'Manual'
+            // Pastikan parameter kedua dikirim 'Manual' secara tegas!
             openOpnameModal(foundAsset, 'Manual');
         }
 
