@@ -565,12 +565,9 @@
                         <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="historyMethodFilter" onchange="renderHistoryTable()" class="flex-1 sm:flex-none text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
-                            <option value="ALL">Semua Metode</option>
-                            <option value="Scan">Scan (Kamera/Foto)</option>
-                            <option value="Manual">Manual</option>
-                        </select>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Metode Opname</label>
+                        <input type="text" id="opnameInputMetode" readonly class="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-100 text-slate-800 font-bold text-xs focus:outline-none cursor-not-allowed" value="Scan">
 
                         <button onclick="exportHistoryToExcel()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
                             <i class="fa-solid fa-file-excel"></i>
@@ -1248,7 +1245,7 @@
             </div>
 
             <div class="space-y-2">
-                <!-- Opsi 1: Live Scanner Kamera (Real-time Stream) -->
+                <!-- Opsi 1: Live Scanner Kamera -->
                 <button onclick="selectLiveCameraScan()" class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-daihatsu-50 border border-slate-200 hover:border-daihatsu-300 transition text-left group">
                     <div class="w-10 h-10 rounded-lg bg-daihatsu-600 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                         <i class="fa-solid fa-qrcode"></i>
@@ -1259,7 +1256,7 @@
                     </div>
                 </button>
 
-                <!-- Opsi 2: Ambil Foto Langsung via Kamera HP (Alternatif untuk HP yang tidak support live stream) -->
+                <!-- Opsi 2: Ambil Foto Barcode via Kamera HP -->
                 <label class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-astra-50 border border-slate-200 hover:border-astra-300 transition text-left cursor-pointer group">
                     <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
                         <i class="fa-solid fa-camera-retro"></i>
@@ -1268,9 +1265,19 @@
                         <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Ambil Foto Barcode (Kamera HP)</p>
                         <p class="text-[10px] text-slate-500">Foto stiker barcode secara langsung menggunakan kamera HP.</p>
                     </div>
-                    <!-- Atribut capture="environment" memaksa perangkat membuka kamera belakang secara mutlak -->
                     <input type="file" accept="image/*" capture="environment" onchange="handleNativeCameraScan(event)" class="hidden">
                 </label>
+
+                <!-- Opsi 3 (BARU): Input Manual By Kode Aset (Bagi aset yang tidak ada barcodenya) -->
+                <button onclick="openManualInputPrompt()" class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition text-left group">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-keyboard"></i>
+                    </div>
+                    <div class="ml-3 min-w-0 flex-1">
+                        <p class="font-bold text-slate-800 text-xs group-hover:text-emerald-700">Input Manual Kode Aset</p>
+                        <p class="text-[10px] text-slate-500">Ketik langsung ID asset jika tidak ada barcode atau rusak.</p>
+                    </div>
+                </button>
             </div>
 
             <button onclick="closeScanMethodModal()" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition">
@@ -3930,6 +3937,33 @@
         
             // Perbarui perhitungan grafik dan angka di kartu kondisi secara real-time
             renderKPIs();
+        }
+
+        // Membuka prompt atau modal kecil untuk mengetik kode aset secara manual
+        function openManualInputPrompt() {
+            closeScanMethodModal();
+            
+            // Meminta user memasukkan ID Asset / No Aset secara manual
+            const manualId = prompt("Masukkan ID Asset / Nomor Aset secara manual:");
+            if (!manualId || !manualId.trim()) return;
+        
+            const queryId = manualId.trim().toLowerCase();
+        
+            // Cari aset di database master
+            let foundAsset = assets.find(a => {
+                let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                return dbId === queryId;
+            });
+        
+            if (!foundAsset) {
+                playBeepSound('error');
+                showToast('Aset Tidak Ditemukan', `ID Asset "${manualId}" tidak terdaftar di Master Aset.`, 'warning');
+                return;
+            }
+        
+            playBeepSound('success');
+            // Buka modal opname dengan metode otomatis 'Manual'
+            openOpnameModal(foundAsset, 'Manual');
         }
 
         function handleImageBarcodeUpload(event) {
