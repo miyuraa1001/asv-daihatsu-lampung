@@ -382,25 +382,25 @@
                     </div>
                 </div>
 
-                <!-- 2. KARTU DETAIL STATISTIK KONDISI (Grid Modern) -->
+                <!-- 2. KARTU DETAIL STATISTIK KONDISI (Dibuat Interaktif Bisa Diklik) -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                    <div class="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
-                        <span class="text-[10px] font-bold text-emerald-700 uppercase block">Kondisi Baik</span>
+                    <div onclick="filterMasterFromCondition('Baik')" class="bg-emerald-50/60 border border-emerald-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition cursor-pointer group">
+                        <span class="text-[10px] font-bold text-emerald-700 uppercase block group-hover:underline">Kondisi Baik</span>
                         <h4 id="insightGood" class="text-xl font-black text-emerald-600 mt-1">0</h4>
                         <span class="text-[10px] text-emerald-600/80 font-medium">Normal / Aman</span>
                     </div>
-                    <div class="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
-                        <span class="text-[10px] font-bold text-amber-700 uppercase block">Rusak Ringan</span>
+                    <div onclick="filterMasterFromCondition('Rusak Ringan')" class="bg-amber-50/60 border border-amber-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition cursor-pointer group">
+                        <span class="text-[10px] font-bold text-amber-700 uppercase block group-hover:underline">Rusak Ringan</span>
                         <h4 id="insightLight" class="text-xl font-black text-amber-600 mt-1">0</h4>
                         <span class="text-[10px] text-amber-600/80 font-medium">Perlu Perbaikan</span>
                     </div>
-                    <div class="bg-rose-50/60 border border-rose-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
-                        <span class="text-[10px] font-bold text-rose-700 uppercase block">Rusak Berat</span>
+                    <div onclick="filterMasterFromCondition('Rusak Berat')" class="bg-rose-50/60 border border-rose-100 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition cursor-pointer group">
+                        <span class="text-[10px] font-bold text-rose-700 uppercase block group-hover:underline">Rusak Berat</span>
                         <h4 id="insightHeavy" class="text-xl font-black text-rose-600 mt-1">0</h4>
                         <span class="text-[10px] text-rose-600/80 font-medium">Ganti Unit / Write-off</span>
                     </div>
-                    <div class="bg-slate-100 border border-slate-200 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition">
-                        <span class="text-[10px] font-bold text-slate-700 uppercase block">Hilang</span>
+                    <div onclick="filterMasterFromCondition('Hilang')" class="bg-slate-100 border border-slate-200 p-3.5 rounded-xl text-center shadow-2xs hover:shadow-md transition cursor-pointer group">
+                        <span class="text-[10px] font-bold text-slate-700 uppercase block group-hover:underline">Hilang</span>
                         <h4 id="insightLost" class="text-xl font-black text-slate-800 mt-1">0</h4>
                         <span class="text-[10px] text-slate-500 font-medium">Tidak Ditemukan</span>
                     </div>
@@ -445,8 +445,9 @@
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 mt-4 text-center">
-                    <button onclick="switchView('auditHistory')" class="text-xs font-bold text-astra-600 hover:text-astra-700 transition">
-                        Lihat Seluruh Riwayat Log &rarr;
+                    <button onclick="switchView('history')" class="text-xs font-bold text-astra-600 hover:text-astra-700 transition flex items-center justify-center gap-1 mx-auto">
+                        <span>Lihat Seluruh Riwayat Log</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </button>
                 </div>
             </div>
@@ -622,6 +623,71 @@
             </div>
         </section>
     </main>
+
+    <!-- VIEW: HALAMAN KHUSUS FILTER KARTU DASHBOARD (TERSCAN / BELUM DISCAN) -->
+    <main id="scannedAssetView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
+        
+        <!-- Header Info Banner -->
+        <div id="filterViewBanner" class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
+            <div>
+                <span id="filterViewBadge" class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-500/30">
+                    <i class="fa-solid fa-filter text-[10px]"></i> Filtered Asset View
+                </span>
+                <h2 id="filterViewTitle" class="text-xl sm:text-2xl font-black text-white mt-1.5">Daftar Aset Terscan</h2>
+                <p id="filterViewDesc" class="text-xs text-slate-300 mt-1">Rekapitulasi unit aset yang telah berhasil diverifikasi fisiknya di lapangan.</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-xl border border-white/15 text-center shrink-0">
+                <span class="text-[10px] text-slate-300 block uppercase font-mono">Total Kategori</span>
+                <span class="text-xl sm:text-2xl font-black text-white" id="filterViewTotalCount">0 Unit</span>
+            </div>
+        </div>
+
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <!-- Tombol Switch Kategori (Hanya tampil saat mode filter kondisi aktif) -->
+            <div id="conditionSwitchContainer" class="hidden px-4 pt-3 pb-2 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-500 mr-2"><i class="fa-solid fa-sliders"></i> Tampilkan Kategori:</span>
+                <button onclick="setDamageCategory('aset')" id="btnSwitchAset" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs">
+                    Status Fisik Aset
+                </button>
+                <button onclick="setDamageCategory('label')" id="btnSwitchLabel" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-200 text-slate-700 hover:bg-slate-300">
+                    Status Label Barcode
+                </button>
+            </div>
+            
+            <!-- Toolbar Cari & Export -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="filterSearchInput" onkeyup="renderDynamicFilteredTable()" placeholder="Cari ID aset / deskripsi / ruangan..." class="w-full pl-8 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="exportFilterViewToExcel()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Export Excel</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabel Dinamis (Otomatis berubah format kolomnya tergantung menu yang diklik) -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-xs border-collapse min-w-[1100px]">
+                    <thead id="filterTableHead" class="bg-slate-800 text-white font-semibold uppercase tracking-wider border-b border-slate-700 text-[11px]">
+                        <!-- Terisi otomatis via JS -->
+                    </thead>
+                    <tbody id="filterTableBody" class="divide-y divide-slate-200 text-slate-700 bg-white">
+                        <!-- Terisi otomatis via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                <span id="filterTableCountSummary">0 unit</span>
+                <span class="text-[10px] text-slate-400">Sinkronisasi otomatis dengan database</span>
+            </div>
+        </section>
+    </main>
     
     <!-- VIEW 4: REKAPITULASI CABANG & RUANGAN -->
     <main id="recapView" class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 hidden">
@@ -791,36 +857,36 @@
         </div>
     </main>
     
-    <!-- Mobile & Tablet Bottom Navigation Bar (Tampil di HP & Tablet, tersembunyi di Laptop/Desktop "lg") -->
+    <!-- Mobile & Tablet Bottom Navigation Bar (Hanya tampil di HP & Tablet, otomatis SEMBUNYI di Laptop/Desktop) -->
     <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-3 pt-2 pb-5 flex items-center justify-around shadow-lg">
         <button onclick="switchView('dashboard')" id="mobileNavDashboard" class="flex flex-col items-center justify-center py-1 px-2 text-daihatsu-600 font-bold transition">
             <i class="fa-solid fa-gauge-high text-base"></i>
             <span class="text-[10px] mt-0.5">Opname</span>
         </button>
-    
+
         <button onclick="switchView('masterdata')" id="mobileNavMasterData" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-boxes-stacked text-base"></i>
             <span class="text-[10px] mt-0.5">Aset</span>
         </button>
-    
-        <!-- Tombol Kamera Mengambang di Tengah -->
+
+        <!-- Tombol Kamera Mengambang di Tengah (Hanya di HP/Tablet) -->
         <div class="relative -top-6">
             <button onclick="openScanMethodModal()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-daihatsu-700 via-daihatsu-600 to-astra-700 text-white flex items-center justify-center shadow-lg shadow-daihatsu-600/40 border-4 border-white active:scale-95 transition-all">
                 <i class="fa-solid fa-camera text-xl"></i>
             </button>
         </div>
-    
+
         <button onclick="switchView('history')" id="mobileNavHistory" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-clock-rotate-left text-base"></i>
             <span class="text-[10px] mt-0.5">Riwayat</span>
         </button>
-    
+
         <button onclick="switchView('recap')" id="mobileNavRecap" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 font-medium transition">
             <i class="fa-solid fa-layer-group text-base"></i>
             <span class="text-[10px] mt-0.5">Rekap</span>
         </button>
     </nav>
-
+    
     <!-- MODAL LOGIN AUDITOR / PETUGAS -->
     <div id="loginModal" class="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeLoginModal()">
         <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all" onclick="event.stopPropagation()">
@@ -1182,7 +1248,7 @@
                     <div class="w-8 h-8 rounded-lg bg-daihatsu-50 text-daihatsu-600 flex items-center justify-center font-bold">
                         <i class="fa-solid fa-camera-rotate text-sm"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm">Pemindaian Barcode Aset</h3>
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-sm">Pilih Metode Pemindaian</h3>
                 </div>
                 <button onclick="closeScanMethodModal()" class="text-slate-400 hover:text-slate-600 p-1">
                     <i class="fa-solid fa-xmark text-lg"></i>
@@ -1190,16 +1256,29 @@
             </div>
 
             <div class="space-y-2">
-                <!-- Opsi Wajib Live Camera (Tanpa celah buka galeri file) -->
-                <button onclick="selectLiveCameraScan()" class="w-full flex items-center p-3.5 rounded-xl bg-daihatsu-50 hover:bg-daihatsu-100 border border-daihatsu-200 transition text-left group shadow-xs">
+                <!-- Opsi 1: Live Scanner Kamera (Real-time Stream) -->
+                <button onclick="selectLiveCameraScan()" class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-daihatsu-50 border border-slate-200 hover:border-daihatsu-300 transition text-left group">
                     <div class="w-10 h-10 rounded-lg bg-daihatsu-600 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-camera"></i>
+                        <i class="fa-solid fa-qrcode"></i>
                     </div>
                     <div class="ml-3 min-w-0 flex-1">
-                        <p class="font-bold text-slate-900 text-xs group-hover:text-daihatsu-700">Buka Kamera Langsung (Live Scanner)</p>
-                        <p class="text-[10px] text-slate-500">Gunakan kamera perangkat secara real-time untuk memindai barcode.</p>
+                        <p class="font-bold text-slate-800 text-xs group-hover:text-daihatsu-700">Scan Live Kamera</p>
+                        <p class="text-[10px] text-slate-500">Gunakan sorotan kamera langsung untuk deteksi barcode otomatis.</p>
                     </div>
                 </button>
+
+                <!-- Opsi 2: Ambil Foto Langsung via Kamera HP (Alternatif untuk HP yang tidak support live stream) -->
+                <label class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-astra-50 border border-slate-200 hover:border-astra-300 transition text-left cursor-pointer group">
+                    <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-camera-retro"></i>
+                    </div>
+                    <div class="ml-3 min-w-0 flex-1">
+                        <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Ambil Foto Barcode (Kamera HP)</p>
+                        <p class="text-[10px] text-slate-500">Foto stiker barcode secara langsung menggunakan kamera HP.</p>
+                    </div>
+                    <!-- Atribut capture="environment" memaksa perangkat membuka kamera belakang secara mutlak -->
+                    <input type="file" accept="image/*" capture="environment" onchange="handleNativeCameraScan(event)" class="hidden">
+                </label>
             </div>
 
             <button onclick="closeScanMethodModal()" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition">
@@ -1226,14 +1305,299 @@
         let toastTimeout = null;
         let pendingConfirmCallback = null;
         let currentPage = 1;
-        const itemsPerPage = 15;
         let html5QrCodeScanner = null;
         let isAutoSaveMode = false;
         let googleSheetsWebhookUrl = localStorage.getItem('app_sheets_url') || '';
+        let currentMasterStatusFilter = 'ALL';
+        let activeDashboardFilterType = 'SCANNED';
+        let activeConditionFilter = null; // 'Baik', 'Rusak Ringan', 'Rusak Berat', 'Hilang', dll
+        let activeStatusType = 'aset'; // 'aset' (untuk status fisik aset) atau 'label' (untuk status label barcode)
+        
 
+        const itemsPerPage = 15;
         // API Backend Proxy URL
         const PROXY_API_URL = "/api/proxy";
 
+       function filterMasterFromCondition(conditionName) {
+            activeDashboardFilterType = 'CONDITION'; 
+            activeConditionFilter = conditionName;
+            activeStatusType = 'aset'; // Default awal melihat dari status fisik aset
+            switchView('scannedAssetView');
+        }
+
+        // Fungsi tombol switch kategori (Status Aset vs Status Label)
+        function setDamageCategory(statusType) {
+            activeStatusType = statusType; // 'aset' atau 'label'
+            
+            const btnAset = document.getElementById('btnSwitchAset');
+            const btnLabel = document.getElementById('btnSwitchLabel');
+            
+            if (statusType === 'aset') {
+                if (btnAset) btnAset.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs";
+                if (btnLabel) btnLabel.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-200 text-slate-700 hover:bg-slate-300";
+            } else {
+                if (btnLabel) btnLabel.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-daihatsu-600 text-white shadow-xs";
+                if (btnAset) btnAset.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-slate-200 text-slate-700 hover:bg-slate-300";
+            }
+            
+            renderDynamicFilteredTable();
+        }
+
+        // Fungsi Render Tabel Dinamis (Menangani Aset Terscan, Belum Discan, maupun Filter Kondisi + Switch Aset/Label)
+        function renderDynamicFilteredTable() {
+            const searchVal = safeGetValue('filterSearchInput').toLowerCase().trim();
+            const branchVal = safeGetValue('branchSelector', 'ALL');
+            const tbody = document.getElementById('filterTableBody');
+            const thead = document.getElementById('filterTableHead');
+            const banner = document.getElementById('filterViewBanner');
+            const badge = document.getElementById('filterViewBadge');
+            const titleEl = document.getElementById('filterViewTitle');
+            const descEl = document.getElementById('filterViewDesc');
+            const switchContainer = document.getElementById('conditionSwitchContainer');
+        
+            if (!tbody || !thead) return;
+            tbody.innerHTML = '';
+        
+            // Ambil master aset dan log riwayat yang sesuai dengan cabang aktif di header
+            const scopedMasterAssets = branchVal === 'ALL' 
+                ? assets 
+                : assets.filter(a => a.cabang.startsWith(branchVal) || branchVal.startsWith(a.cabang));
+        
+            const scopedLogs = branchVal === 'ALL' 
+                ? historyLogs 
+                : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
+        
+            const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
+        
+            let targetData = [];
+        
+            if (activeDashboardFilterType === 'SCANNED') {
+                if (switchContainer) switchContainer.classList.add('hidden');
+                
+                targetData = scopedLogs.filter(item => {
+                    const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.lokasiOpname} ${item.keterangan || ''}`.toLowerCase();
+                    return searchTarget.includes(searchVal);
+                });
+        
+                // Styling Banner untuk Terscan (Nuansa Hijau)
+                if (banner) banner.className = "bg-gradient-to-r from-emerald-900 via-emerald-800 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all";
+                if (badge) {
+                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-emerald-500/30";
+                    badge.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> Verified Asset Log`;
+                }
+                if (titleEl) titleEl.innerText = "Daftar Aset yang Sudah Terscan";
+                if (descEl) descEl.innerText = "Rekapitulasi unit aset yang telah berhasil diverifikasi fisiknya di lapangan.";
+        
+                // Header Tabel untuk Terscan
+                thead.innerHTML = `
+                    <tr>
+                        <th class="py-3 px-3 text-center w-12">NO</th>
+                        <th class="py-3 px-3">Tanggal Scan</th>
+                        <th class="py-3 px-3">Nomor Aset + Sub</th>
+                        <th class="py-3 px-3">Business Area</th>
+                        <th class="py-3 px-3">Deskripsi Aset</th>
+                        <th class="py-3 px-3">Lokasi (SAP)</th>
+                        <th class="py-3 px-3">Lokasi (Opname)</th>
+                        <th class="py-3 px-3">Waktu Scan</th>
+                        <th class="py-3 px-3">Status Aset</th>
+                        <th class="py-3 px-3">Status Label</th>
+                        <th class="py-3 px-3 text-center">Foto Temuan</th>
+                        <th class="py-3 px-3">Keterangan</th>
+                    </tr>
+                `;
+        
+            } else if (activeDashboardFilterType === 'PENDING') {
+                if (switchContainer) switchContainer.classList.add('hidden');
+                
+                const pendingAssets = scopedMasterAssets.filter(a => !scannedAssetIds.has(String(a.id).trim().toLowerCase()));
+                
+                targetData = pendingAssets.filter(item => {
+                    const searchTarget = `${item.id} ${item.subNumber} ${item.deskripsi} ${item.lokasi}`.toLowerCase();
+                    return searchTarget.includes(searchVal);
+                });
+        
+                // Styling Banner untuk Belum Discan (Nuansa Merah/Daihatsu)
+                if (banner) banner.className = "bg-gradient-to-r from-daihatsu-950 via-daihatsu-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all";
+                if (badge) {
+                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-daihatsu-300 bg-daihatsu-950/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-daihatsu-500/30";
+                    badge.innerHTML = `<i class="fa-solid fa-hourglass-half text-[10px]"></i> Pending Verification`;
+                }
+                if (titleEl) titleEl.innerText = "Daftar Aset yang Belum Di-scan";
+                if (descEl) descEl.innerText = "Daftar unit sisa target opname yang belum dipindai fisiknya di cabang ini.";
+        
+                // Header Tabel untuk Belum Discan
+                thead.innerHTML = `
+                    <tr>
+                        <th class="py-3 px-3 text-center w-12">NO</th>
+                        <th class="py-3 px-3">Asset ID</th>
+                        <th class="py-3 px-3">Sub-Number</th>
+                        <th class="py-3 px-3">Business Area</th>
+                        <th class="py-3 px-3">Asset Description</th>
+                        <th class="py-3 px-3">Capitalized On</th>
+                        <th class="py-3 px-3">Room (Lokasi SAP)</th>
+                        <th class="py-3 px-3 text-center">Aksi Cepat</th>
+                    </tr>
+                `;
+        
+            } else if (activeDashboardFilterType === 'CONDITION') {
+                // Tampilkan tombol switch kategori (Status Fisik Aset vs Status Label Barcode)
+                if (switchContainer) switchContainer.classList.remove('hidden');
+        
+                targetData = scopedLogs.filter(item => {
+                    let matchCondition = false;
+                    
+                    // Menyaring berdasarkan perspektif yang dipilih pada tombol switch ('aset' atau 'label')
+                    if (activeStatusType === 'aset') {
+                        matchCondition = String(item.statusAset || "").toLowerCase().includes(activeConditionFilter.toLowerCase());
+                    } else {
+                        matchCondition = String(item.statusLabel || "").toLowerCase().includes(activeConditionFilter.toLowerCase());
+                    }
+        
+                    const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.keterangan || ''}`.toLowerCase();
+                    return matchCondition && searchTarget.includes(searchVal);
+                });
+        
+                // Styling Banner untuk Filter Kondisi
+                if (banner) banner.className = "bg-gradient-to-r from-amber-900 via-slate-900 to-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all";
+                if (badge) {
+                    badge.className = "text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-950/80 px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 border border-amber-500/30";
+                    badge.innerHTML = `<i class="fa-solid fa-chart-pie text-[10px]"></i> Condition Breakdown`;
+                }
+                if (titleEl) titleEl.innerText = `Rincian - ${activeStatusType === 'aset' ? 'Status Aset' : 'Status Label'}: ${activeConditionFilter}`;
+                if (descEl) descEl.innerText = `Menampilkan daftar unit berdasarkan kriteria ${activeStatusType === 'aset' ? 'kondisi fisik aset' : 'kondisi label barcode'}.`;
+                
+                // Header Tabel untuk Filter Kondisi
+                thead.innerHTML = `
+                    <tr>
+                        <th class="py-3 px-3 text-center w-12">NO</th>
+                        <th class="py-3 px-3">Tanggal Scan</th>
+                        <th class="py-3 px-3">Nomor Aset + Sub</th>
+                        <th class="py-3 px-3">Business Area</th>
+                        <th class="py-3 px-3">Deskripsi Aset</th>
+                        <th class="py-3 px-3">Lokasi (Opname)</th>
+                        <th class="py-3 px-3">Status Aset</th>
+                        <th class="py-3 px-3">Status Label</th>
+                        <th class="py-3 px-3 text-center">Foto Temuan</th>
+                        <th class="py-3 px-3">Keterangan</th>
+                    </tr>
+                `;
+            }
+        
+            safeSetText('filterViewTotalCount', `${targetData.length} Unit`);
+        
+            if (targetData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="text-center py-8 text-slate-400">
+                            <i class="fa-solid fa-box-open text-2xl mb-1 block"></i>
+                            Tidak ada data aset ditemukan untuk filter ini.
+                        </td>
+                    </tr>`;
+            } else {
+                targetData.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-xs";
+        
+                    if (activeDashboardFilterType === 'PENDING') {
+                        // Baris Tabel untuk Belum Di-scan
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 text-center font-mono text-slate-400 font-bold">${index + 1}</td>
+                            <td class="py-2.5 px-3 font-mono font-bold text-slate-900">${item.id}</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-600">${item.subNumber || '0'}</td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-700">${item.cabang}</td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-500 text-[11px]">${item.capitalizedOn || '-'}</td>
+                            <td class="py-2.5 px-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono text-[11px]">${item.lokasi}</span></td>
+                            <td class="py-2.5 px-3 text-center">
+                                <button onclick="fillBarcodeInput('${item.id}'); triggerOpnameLookup('Manual');" class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-3 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                    <span>Opname Sekarang</span>
+                                </button>
+                            </td>
+                        `;
+                    } else {
+                        // Baris Tabel untuk Terscan & Filter Kondisi
+                        const isAsetBaik = item.statusAset === 'Baik';
+                        const asetBadge = isAsetBaik
+                            ? `<span class="bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full text-[10px]">${item.statusAset}</span>`
+                            : `<span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${item.statusAset}</span>`;
+        
+                        const isLabelBaik = item.statusLabel === 'Baik';
+                        const labelBadge = isLabelBaik
+                            ? `<span class="bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded text-[10px]">Baik</span>`
+                            : `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">${item.statusLabel}</span>`;
+        
+                        let fotoHtml = `<span class="text-slate-400 italic">-</span>`;
+                        if (item.asetTemuan) {
+                            if (item.asetTemuan.startsWith("http")) {
+                                fotoHtml = `<a href="${item.asetTemuan}" target="_blank" class="px-2 py-1 bg-astra-50 text-astra-700 border border-astra-200 rounded font-bold text-[10px]">Drive</a>`;
+                            } else {
+                                fotoHtml = `<button onclick="viewPhotoDetail('${item.asetTemuan}')" class="p-0.5 rounded border border-rose-300 bg-white"><img src="${item.asetTemuan}" class="w-8 h-8 object-cover rounded"></button>`;
+                            }
+                        }
+        
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 text-center font-mono text-slate-400 font-bold">${index + 1}</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-600 whitespace-nowrap">${formatDisplayDate(item.tanggalScan)}</td>
+                            <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">${item.assetId} ${item.subNumber || '0'}</td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-700">${item.cabang}</td>
+                            <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
+                            ${activeDashboardFilterType === 'CONDITION' ? '' : `<td class="py-2.5 px-3 font-mono text-slate-600 bg-slate-50">${item.lokasiSap}</td>`}
+                            <td class="py-2.5 px-3 font-mono font-bold text-slate-800">${item.lokasiOpname || '-'}</td>
+                            ${activeDashboardFilterType === 'CONDITION' ? '' : `<td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${formatDisplayTime(item.waktuScan)}</td>`}
+                            <td class="py-2.5 px-3 whitespace-nowrap">${asetBadge}</td>
+                            <td class="py-2.5 px-3 whitespace-nowrap">${labelBadge}</td>
+                            <td class="py-2.5 px-3 text-center whitespace-nowrap">${fotoHtml}</td>
+                            <td class="py-2.5 px-3 text-slate-600 max-w-xs truncate">${item.keterangan || '-'}</td>
+                        `;
+                    }
+                    tbody.appendChild(tr);
+                });
+            }
+            safeSetText('filterTableCountSummary', `Menampilkan ${targetData.length} unit`);
+        }
+        
+        // Fungsi Export Excel untuk Halaman Dinamis
+        function exportFilterViewToExcel() {
+            try {
+                const branchVal = safeGetValue('branchSelector', 'ALL');
+                const isScannedMode = (activeDashboardFilterType === 'SCANNED');
+                
+                const scopedMasterAssets = branchVal === 'ALL' ? assets : assets.filter(a => a.cabang.startsWith(branchVal) || branchVal.startsWith(a.cabang));
+                const scopedLogs = branchVal === 'ALL' ? historyLogs : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
+                const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
+        
+                let exportData = [];
+                let filename = "";
+        
+                if (isScannedMode) {
+                    exportData = scopedLogs.map((h, i) => ({
+                        "NO": i + 1, "Tanggal Scan": formatDisplayDate(h.tanggalScan), "ID Asset": h.assetId,
+                        "Sub-Number": h.subNumber || '0', "Business Area": h.cabang, "Asset Description": h.deskripsi,
+                        "Lokasi (SAP)": h.lokasiSap, "Lokasi (Opname)": h.lokasiOpname, "Waktu Scan": h.waktuScan,
+                        "Status Aset": h.statusAset, "Status Label": h.statusLabel, "Keterangan": h.keterangan || "-"
+                    }));
+                    filename = `Aset_Terscan_${branchVal}_${new Date().toISOString().slice(0,10)}.xlsx`;
+                } else {
+                    const pendingAssets = scopedMasterAssets.filter(a => !scannedAssetIds.has(String(a.id).trim().toLowerCase()));
+                    exportData = pendingAssets.map((a, i) => ({
+                        "NO": i + 1, "ID Asset": a.id, "Sub-Number": a.subNumber || '0',
+                        "Business Area": a.cabang, "Asset Description": a.deskripsi,
+                        "Capitalized On": a.capitalizedOn || '-', "Room (Lokasi SAP)": a.lokasi, "Status": "Belum Di-scan"
+                    }));
+                    filename = `Aset_Belum_Discan_${branchVal}_${new Date().toISOString().slice(0,10)}.xlsx`;
+                }
+        
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Filter");
+                XLSX.writeFile(workbook, filename);
+                showToast('Export Berhasil', 'File Excel berhasil diunduh.', 'success');
+            } catch (err) {
+                showToast('Gagal Export', 'Terjadi kesalahan saat memproses file Excel.', 'warning');
+            }
+        }
+                
         function safeSetText(id, text) {
             const el = document.getElementById(id);
             if (el) el.innerText = text;
@@ -1564,7 +1928,8 @@
                 masterdata: document.getElementById('masterDataView'),
                 history: document.getElementById('auditHistoryView'),
                 recap: document.getElementById('recapView'),
-                settings: document.getElementById('settingsView')
+                settings: document.getElementById('settingsView'),
+                scannedAssetView: document.getElementById('scannedAssetView') // ID wadah halaman khusus
             };
 
             const desktopBtns = {
@@ -1624,9 +1989,14 @@
             }
 
             if (viewName === 'dashboard') renderKPIs();
-            if (viewName === 'masterdata') renderTable();
+            if (viewName === 'masterdata') {
+                // Jika masuk lewat sidebar secara manual, reset filter status ke ALL
+                // Tapi jika diklik dari kartu dashboard, biarkan status filternya sesuai pilihan kartu
+                renderTable();
+            }
             if (viewName === 'history') renderHistoryTable();
             if (viewName === 'recap') renderRecapView();
+            if (viewName === 'scannedAssetView') renderDynamicFilteredTable();
         }
 
         function onBranchChange() {
@@ -2041,7 +2411,7 @@
                 }
             }
 
-            // 5. Render Live Activity Feed (3 Scan Terakhir)
+            // 5. Render Live Activity Feed (3 Scan Terakhir) yang Presisi & Rapih
             const feedContainer = document.getElementById('liveActivityFeed');
             if (feedContainer) {
                 if (scopedLogs.length === 0) {
@@ -2051,15 +2421,35 @@
                     let feedHtml = '';
                     
                     latestLogs.forEach(log => {
+                        // Bersihkan string waktu jika terlanjur panjang berformat GMT/ISO
+                        let rawTime = String(log.waktuScan || "").trim();
+                        let displayTime = rawTime;
+                        if (rawTime.includes("GMT") || rawTime.includes("T") || rawTime.length > 10) {
+                            let d = new Date(rawTime);
+                            if (!isNaN(d.getTime())) {
+                                let h = String(d.getHours()).padStart(2, '0');
+                                let m = String(d.getMinutes()).padStart(2, '0');
+                                let s = String(d.getSeconds()).padStart(2, '0');
+                                displayTime = `${h}:${m}:${s}`;
+                            } else {
+                                displayTime = "Baru saja";
+                            }
+                        } else {
+                            displayTime = rawTime.replace(/[.]/g, ':');
+                        }
+
                         feedHtml += `
-                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
-                                <div class="min-w-0 pr-2">
-                                    <p class="font-bold text-slate-800 truncate font-mono">${log.assetId}</p>
-                                    <p class="text-[11px] text-slate-500 truncate">${log.deskripsi || '-'}</p>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <p class="font-bold text-slate-900 truncate font-mono text-xs">${log.assetId}</p>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 shrink-0">${log.subNumber || '0'}</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 truncate mt-0.5">${log.deskripsi || '-'}</p>
                                 </div>
                                 <div class="text-right shrink-0">
-                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">${log.waktuScan || 'Baru saja'}</span>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">${log.lokasiOpname || log.lokasiSap}</p>
+                                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded font-mono block">${displayTime}</span>
+                                    <span class="text-[10px] text-slate-400 font-semibold mt-1 block">${log.lokasiOpname || log.lokasiSap || '-'}</span>
                                 </div>
                             </div>
                         `;
@@ -2079,13 +2469,27 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            // Ambil ID aset yang sudah terscan berdasarkan cabang aktif di header
+            const scopedLogs = branchVal === 'ALL' ? historyLogs : historyLogs.filter(h => h.cabang.startsWith(branchVal) || branchVal.startsWith(h.cabang));
+            const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
+
             const filtered = assets.filter(item => {
+                const itemId = String(item.id || item["ID Asset"] || "").trim().toLowerCase();
                 const matchSearch = item.id.toLowerCase().includes(searchVal) ||
                                     (item.subNumber && item.subNumber.toLowerCase().includes(searchVal)) ||
                                     item.deskripsi.toLowerCase().includes(searchVal) ||
                                     item.lokasi.toLowerCase().includes(searchVal);
                 const matchBranch = branchVal === 'ALL' || item.cabang.startsWith(branchVal) || branchVal.startsWith(item.cabang);
                 const matchRoom = roomVal === 'ALL' || item.lokasi === roomVal;
+
+                // Filter status berdasarkan kartu KPI dashboard yang diklik
+                const isScanned = scannedAssetIds.has(itemId);
+                let matchStatus = true;
+                if (currentMasterStatusFilter === 'SCANNED') {
+                    matchStatus = isScanned;
+                } else if (currentMasterStatusFilter === 'PENDING') {
+                    matchStatus = !isScanned;
+                }
 
                 return matchSearch && matchBranch && matchRoom;
             });
