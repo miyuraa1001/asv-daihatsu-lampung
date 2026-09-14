@@ -583,7 +583,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
 
             <!-- Table 2 Container -->
             <div class="overflow-x-auto custom-scrollbar">
@@ -1368,7 +1367,7 @@
         }
 
         // Handler khusus untuk foto barcode kamera HP dengan metode 'Scan'
-        function handleNativeCameraScanWithMethod(event, methodType) {
+        function handleNativeCameraScanWithMethod(event, methodType = 'Scan') {
             const file = event.target.files[0];
             if (!file) return;
         
@@ -1386,6 +1385,9 @@
                     }
         
                     playBeepSound('success');
+                    const inputEl = document.getElementById('mainBarcodeInput');
+                    if (inputEl) inputEl.value = rawText;
+        
                     let cleanedText = rawText.replace(/[-_]/g, " ");
                     let parts = cleanedText.split(/\s+/);
                     let scannedId = parts[0].trim().toLowerCase();
@@ -1406,7 +1408,23 @@
                         return;
                     }
         
-                    // Buka modal opname dengan membawa metode 'Scan' secara tegas
+                    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
+                    const alreadyScannedToday = historyLogs.some(h => {
+                        let hId = String(h.assetId || "").trim().toLowerCase();
+                        let hSub = String(h.subNumber || "0").trim().toLowerCase();
+                        let hDate = String(h.tanggalScan || "").trim();
+                        return hId === String(foundAsset.id).trim().toLowerCase() && 
+                               hSub === String(foundAsset.subNumber || "0").trim().toLowerCase() && 
+                               hDate === todayStr;
+                    });
+        
+                    if (alreadyScannedToday) {
+                        playBeepSound('error');
+                        showToast('Aset Sudah Terscan', `Aset ${foundAsset.id} sudah pernah dipindai hari ini.`, 'warning');
+                        return;
+                    }
+        
+                    // Buka modal dengan parameter methodType ('Scan')
                     openOpnameModal(foundAsset, methodType);
                 })
                 .catch(err => {
@@ -2416,6 +2434,7 @@
         
             const lokasiActual = safeGetValue('opnameInputLokasiActual', activeOpnameAsset.lokasi).trim();
             
+            // Perbaikan: Ambil dari ID yang benar (opnameModalInputMetodeFinal)
             const metodeInputEl = document.getElementById('opnameModalInputMetodeFinal');
             let metode = (metodeInputEl && metodeInputEl.value.trim()) ? metodeInputEl.value.trim() : (activeOpnameMethod || 'Scan');
             metode = metode.toLowerCase().includes('manual') ? 'Manual' : 'Scan';
@@ -2436,7 +2455,7 @@
                 keterangan: keterangan || "-"
             };
         
-            // Bersih tanpa token — token otomatis ditempel oleh api/proxy.js di backend Vercel
+            // Aman tanpa hardcode token di frontend
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3865,7 +3884,6 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    token: "astra_daihatsu_2026", // Token pengaman wajib ada
                     action: "updatePassword",
                     npk: currentUser.npk,
                     oldPassword: oldPassword,
