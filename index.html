@@ -565,10 +565,13 @@
                         <input type="text" id="historySearchInput" onkeyup="renderHistoryTable()" placeholder="Cari aset / deskripsi..." class="w-full pl-8 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-astra-500 bg-white">
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">Metode Opname</label>
-                        <input type="text" id="opnameModalInputMetodeValidasi" readonly class="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-100 text-slate-800 font-bold text-xs focus:outline-none cursor-not-allowed">
-                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="historyMethodFilter" onchange="renderHistoryTable()" class="text-xs border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-astra-500">
+                            <option value="ALL">Semua Metode</option>
+                            <option value="Scan">Scan</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+
                         <button onclick="exportHistoryToExcel()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs shrink-0">
                             <i class="fa-solid fa-file-excel"></i>
                             <span>Export</span>
@@ -974,7 +977,7 @@
         </div>
     </div>
     
-    <!-- MODAL 1: FORM VERIFIKASI OPNAME & INPUT TEMUAN -->
+<!-- MODAL 1: FORM VERIFIKASI OPNAME & INPUT TEMUAN -->
     <div id="opnameModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs hidden flex items-center justify-center p-2 sm:p-4" onclick="closeOpnameModal()">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[95vh] flex flex-col" onclick="event.stopPropagation()">
             
@@ -1020,7 +1023,7 @@
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Metode Opname</label>
-                        <input type="text" id="opnameModalInputMetodeValidasi" readonly class="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-100 text-slate-800 font-bold text-xs focus:outline-none cursor-not-allowed">
+                        <input type="text" id="opnameModalInputMetodeFinal" readonly class="w-full border border-slate-300 rounded-xl p-2.5 bg-slate-100 text-slate-800 font-bold text-xs focus:outline-none cursor-not-allowed">
                     </div>
 
                     <div>
@@ -2169,7 +2172,6 @@
         function openOpnameModal(assetObj, method) {
             activeOpnameAsset = assetObj;
             
-            // Tentukan metode secara otomatis jika argumen method tidak ada
             let detectedMethod = method || (window.isLastOpnameManual ? 'Manual' : 'Scan');
             activeOpnameMethod = String(detectedMethod).trim();
             activeEvidencePhoto = null;
@@ -2182,13 +2184,13 @@
             const lokasiInput = document.getElementById('opnameInputLokasiActual');
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
         
-            // Set teks UI di dalam modal verifikasi
             const isManual = activeOpnameMethod.toLowerCase().includes('manual');
             const finalMethodText = isManual ? 'Manual' : 'Scan';
         
-            const metodeInput = document.getElementById('opnameModalInputMetodeValidasi');
+            // Set nilai ke ID yang baru
+            const metodeInput = document.getElementById('opnameModalInputMetodeFinal');
             if (metodeInput) {
-                metodeInput.value = finalMethodText; 
+                metodeInput.value = finalMethodText;
             }
         
             window.isLastOpnameManual = false;
@@ -2408,7 +2410,6 @@
                     return;
                 }
             }
-            // ------------------------------------------------------------------------
         
             // Cek apakah aset sudah pernah discan hari ini
             const alreadyScanned = historyLogs.some(h => {
@@ -2437,7 +2438,11 @@
             const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
             const lokasiActual = safeGetValue('opnameInputLokasiActual', activeOpnameAsset.lokasi).trim();
-            const metode = safeGetValue('opnameInputMetode', activeOpnameMethod);
+            
+            // Baca metode dari elemen input modal verifikasi baru dengan fallback aman
+            const metodeInputEl = document.getElementById('opnameModalInputMetodeFinal');
+            let metode = (metodeInputEl && metodeInputEl.value.trim()) ? metodeInputEl.value.trim() : (activeOpnameMethod || 'Scan');
+            metode = metode.toLowerCase().includes('manual') ? 'Manual' : 'Scan';
         
             const newHistoryLog = {
                 tanggalScan: dateStr,
