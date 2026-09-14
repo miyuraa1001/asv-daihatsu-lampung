@@ -2169,16 +2169,8 @@
         function openOpnameModal(assetObj, method) {
             activeOpnameAsset = assetObj;
             
-            // Jika parameter method tidak dikirim, tentukan secara cerdas berdasarkan tombol atau input
-            let detectedMethod = method;
-            if (!detectedMethod) {
-                if (window.isLastOpnameManual) {
-                    detectedMethod = 'Manual';
-                } else {
-                    detectedMethod = 'Scan'; // Default aman jadi Scan jika dibuka dari tombol tabel/kamera
-                }
-            }
-            
+            // Tentukan metode secara otomatis jika argumen method tidak ada
+            let detectedMethod = method || (window.isLastOpnameManual ? 'Manual' : 'Scan');
             activeOpnameMethod = String(detectedMethod).trim();
             activeEvidencePhoto = null;
         
@@ -2190,11 +2182,10 @@
             const lokasiInput = document.getElementById('opnameInputLokasiActual');
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
         
-            // Paksa pastikan teks yang masuk adalah 'Manual' atau 'Scan'
+            // Set teks UI di dalam modal verifikasi
             const isManual = activeOpnameMethod.toLowerCase().includes('manual');
             const finalMethodText = isManual ? 'Manual' : 'Scan';
         
-            // Masukkan nilainya ke input di dalam modal verifikasi
             const metodeInput = document.getElementById('opnameModalInputMetodeValidasi');
             if (metodeInput) {
                 metodeInput.value = finalMethodText; 
