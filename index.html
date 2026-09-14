@@ -1818,39 +1818,60 @@
         function fetchDataFromBackend() {
             showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
         
+            // 1. Ambil Data Master Aset
             fetch(`${PROXY_API_URL}?action=getAssets`)
-                .then(res => res.json())
                 .then(res => {
-                    if (res.status === "success" && Array.isArray(res.data)) {
-                        assets = res.data;
-                        populateRoomFilterDropdown(); 
-                        renderKPIs();
-                        renderTable();
-                        renderHistoryTable();
-                        renderRecapView();
-                        showToast('Sukses', 'Data master berhasil dimuat dari server.', 'success');
-                    } else {
-                        showToast('Informasi', 'Menggunakan data lokal / server kosong.', 'info');
+                    // Cek apakah response dari server berupa JSON valid atau error HTTP
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.text(); // Ambil sebagai teks dulu untuk antisipasi HTML error
+                })
+                .then(text => {
+                    try {
+                        const res = JSON.parse(text);
+                        if (res.status === "success" && Array.isArray(res.data)) {
+                            assets = res.data;
+                            populateRoomFilterDropdown(); 
+                            renderKPIs();
+                            renderTable();
+                            renderHistoryTable();
+                            renderRecapView();
+                            showToast('Sukses', 'Data master berhasil dimuat dari server.', 'success');
+                        } else {
+                            showToast('Informasi', res.message || 'Server merespons tetapi data kosong.', 'info');
+                        }
+                    } catch (e) {
+                        console.error("Format JSON tidak valid:", text);
+                        showToast('Kesalahan Format', 'Server mengembalikan respons non-JSON (HTML/Error). Periksa rute /api/proxy di Vercel.', 'warning');
                     }
                 })
                 .catch(err => {
                     console.error("Backend Error:", err);
-                    showToast('Koneksi Server', 'Gagal terhubung ke backend API.', 'warning');
+                    showToast('Koneksi Server', 'Gagal terhubung ke backend API Vercel.', 'warning');
                 });
         
+            // 2. Ambil Data Log Riwayat
             fetch(`${PROXY_API_URL}?action=getLogs`)
-                .then(res => res.json())
                 .then(res => {
-                    if (res.status === "success" && Array.isArray(res.data)) {
-                        historyLogs = res.data;
-                        renderKPIs();
-                        renderHistoryTable();
-                        renderRecapView();
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.text();
+                })
+                .then(text => {
+                    try {
+                        const res = JSON.parse(text);
+                        if (res.status === "success" && Array.isArray(res.data)) {
+                            historyLogs = res.data;
+                            renderKPIs();
+                            renderHistoryTable();
+                            renderRecapView();
+                        }
+                    } catch (e) {
+                        console.error("Format JSON Log tidak valid:", text);
                     }
                 })
                 .catch(err => console.error("Error getLogs:", err));
         }
-
         function sendLogToServer(logData) {
             // Mengirim data menggunakan jalur Proxy Vercel yang aman dan terintegrasi token
             return fetch(PROXY_API_URL, {
