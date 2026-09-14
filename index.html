@@ -2117,37 +2117,36 @@
 
         // --- OPNAME MODAL ACTIONS ---
         function openOpnameModal(assetObj, method) {
-            activeOpnameAsset = assetObj;
-            const isManualCheck = method && String(method).toLowerCase().includes('manual');
-            // Pastikan method langsung mengambil parameter atau default ke 'Scan'
-            activeOpnameMethod = method ? String(method).trim() : 'Scan';
-            activeEvidencePhoto = null;
-        
-            safeSetText('opnameModalDeskripsi', assetObj.deskripsi);
-            safeSetText('opnameModalNomorSub', `${assetObj.id} ${assetObj.subNumber || '0'}`);
-            safeSetText('opnameModalCabang', `${assetObj.cabang} - ${branchNames[assetObj.cabang] || ''}`);
-            safeSetText('opnameModalLokasiSAP', assetObj.lokasi);
-        
-            const lokasiInput = document.getElementById('opnameInputLokasiActual');
-            if (lokasiInput) lokasiInput.value = assetObj.lokasi;
-        
-            // Tentukan string teks akhir berdasarkan method yang masuk
-            const isManual = activeOpnameMethod.toLowerCase().includes('manual');
-            const finalMethodText = isManual ? 'Manual' : 'Scan';
-        
-            // Cari elemen input metode opname di modal verifikasi
-            const metodeInput = document.getElementById('opnameInputMetode');
-            if (metodeInput) {
-                metodeInput.value = finalMethodText;
-            }
-        
-            clearEvidencePhoto();
-            toggleAttachmentHighlight();
-        
-            const modal = document.getElementById('opnameModal');
-            if (modal) modal.classList.add('hidden'); // Reset modal dulu jika terbuka
-            if (modal) modal.classList.remove('hidden');
+        activeOpnameAsset = assetObj;
+        activeOpnameMethod = method ? String(method).trim() : 'Scan';
+        activeEvidencePhoto = null;
+    
+        safeSetText('opnameModalDeskripsi', assetObj.deskripsi);
+        safeSetText('opnameModalNomorSub', `${assetObj.id} ${assetObj.subNumber || '0'}`);
+        safeSetText('opnameModalCabang', `${assetObj.cabang} - ${branchNames[assetObj.cabang] || ''}`);
+        safeSetText('opnameModalLokasiSAP', assetObj.lokasi);
+    
+        const lokasiInput = document.getElementById('opnameInputLokasiActual');
+        if (lokasiInput) lokasiInput.value = assetObj.lokasi;
+    
+        const isManual = activeOpnameMethod.toLowerCase().includes('manual');
+        const finalMethodText = isManual ? 'Manual' : 'Scan';
+    
+        // Gunakan ID unik yang baru di sini
+        const metodeInput = document.getElementById('opnameModalInputMetode');
+        if (metodeInput) {
+            metodeInput.value = finalMethodText;
         }
+    
+        clearEvidencePhoto();
+        toggleAttachmentHighlight();
+    
+        const modal = document.getElementById('opnameModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('hidden');
+        }
+    }
 
         function closeOpnameModal() {
             const modal = document.getElementById('opnameModal');
