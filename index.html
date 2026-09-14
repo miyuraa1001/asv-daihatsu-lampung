@@ -1800,9 +1800,7 @@
         function fetchDataFromBackend() {
             showToast('Sinkronisasi', 'Mengambil data dari server...', 'info');
         
-            const fetchUrl = googleSheetsWebhookUrl ? googleSheetsWebhookUrl + "?action=getAssets" : `${PROXY_API_URL}?action=getAssets`;
-
-            fetch(fetchUrl)
+            fetch(`${PROXY_API_URL}?action=getAssets`)
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === "success" && Array.isArray(res.data)) {
@@ -1821,9 +1819,8 @@
                     console.error("Backend Error:", err);
                     showToast('Koneksi Server', 'Gagal terhubung ke backend API.', 'warning');
                 });
-
-            const logsUrl = googleSheetsWebhookUrl ? googleSheetsWebhookUrl + "?action=getLogs" : `${PROXY_API_URL}?action=getLogs`;
-            fetch(logsUrl)
+        
+            fetch(`${PROXY_API_URL}?action=getLogs`)
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === "success" && Array.isArray(res.data)) {
@@ -2358,36 +2355,17 @@
 
         function saveOpnameVerification() {
             if (!activeOpnameAsset) {
-                const inputVal = safeGetValue('mainBarcodeInput').trim();
-                let cleanedText = inputVal.replace(/[-_]/g, " ");
-                let parts = cleanedText.split(/\s+/);
-                let scannedId = parts[0].trim().toLowerCase();
-                let scannedSub = (parts[1] || "0").trim().toLowerCase();
-        
-                activeOpnameAsset = assets.find(a => {
-                    let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                    let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
-                    return dbId === scannedId && dbSub === scannedSub;
-                }) || assets.find(a => {
-                    let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
-                    return dbId === scannedId;
-                });
-        
-                if (!activeOpnameAsset) {
-                    showToast('Gagal Simpan', 'Data aset tidak valid atau belum dipilih.', 'error');
-                    return;
-                }
+                showToast('Gagal Simpan', 'Data aset tidak valid atau belum dipilih.', 'error');
+                return;
             }
         
             const currentAssetId = String(activeOpnameAsset.id || activeOpnameAsset["ID Asset"] || "").trim();
             const currentSubNumber = String(activeOpnameAsset.subNumber || activeOpnameAsset["Sub-Number"] || "0").trim();
         
-            // Ambil nilai input dari form modal
             const statusAset = safeGetValue('opnameInputStatusAset', 'Baik');
             const statusLabel = safeGetValue('opnameInputStatusLabel', 'Baik');
             const keterangan = safeGetValue('opnameInputKeterangan', '').trim();
         
-            // Validasi ketat: Wajib foto HANYA jika kondisi fisik rusak atau label rusak/sobek
             const isAsetRusak = (statusAset === 'Rusak Ringan' || statusAset === 'Rusak Berat');
             const isLabelRusak = (statusLabel === 'Rusak'); 
             const isWajibFoto = isAsetRusak || isLabelRusak;
@@ -2395,23 +2373,22 @@
             if (isWajibFoto) {
                 if (!activeEvidencePhoto && !keterangan) {
                     playBeepSound('error');
-                    showToast('Foto & Keterangan Wajib!', 'Kondisi aset atau label mengalami kerusakan. Harap lampirkan foto bukti dan keterangan.', 'warning');
+                    showToast('Foto & Keterangan Wajib!', 'Kondisi aset atau label rusak. Harap lampirkan foto dan keterangan.', 'warning');
                     return;
                 }
                 if (!activeEvidencePhoto) {
                     playBeepSound('error');
-                    showToast('Foto Bukti Wajib Diisi!', 'Silakan ambil foto bukti kerusakan terlebih dahulu.', 'warning');
+                    showToast('Foto Bukti Wajib!', 'Silakan ambil foto bukti kerusakan terlebih dahulu.', 'warning');
                     return;
                 }
                 if (!keterangan) {
                     playBeepSound('error');
-                    showToast('Keterangan Wajib Diisi!', 'Harap isi kolom keterangan tambahan mengenai detail kerusakan.', 'warning');
+                    showToast('Keterangan Wajib!', 'Harap isi kolom keterangan tambahan.', 'warning');
                     document.getElementById('opnameInputKeterangan').focus();
                     return;
                 }
             }
         
-            // Cek apakah aset sudah pernah discan hari ini
             const alreadyScanned = historyLogs.some(h => {
                 let hId = String(h.assetId || "").trim();
                 let hSub = String(h.subNumber || "0").trim();
@@ -2420,7 +2397,7 @@
         
             if (alreadyScanned) {
                 closeOpnameModal();
-                showToast('Aset Sudah Discan!', `Aset ID ${currentAssetId} sudah tercatat dalam riwayat opname.`, 'warning');
+                showToast('Aset Sudah Discan!', `Aset ID ${currentAssetId} sudah tercatat dalam riwayat.`, 'warning');
                 playBeepSound('error');
                 return;
             }
@@ -2428,10 +2405,10 @@
             const saveBtn = document.querySelector('button[onclick="saveOpnameVerification()"]');
             if (saveBtn) {
                 saveBtn.disabled = true;
-                saveBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Sedang Menyimpan ke Database...`;
+                saveBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Menyimpan ke Database...`;
             }
         
-            showToast('Menyimpan...', 'Mohon tunggu, sedang mengirim data ke database...', 'info');
+            showToast('Menyimpan...', 'Mengirim data ke database...', 'info');
         
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.');
@@ -2439,7 +2416,6 @@
         
             const lokasiActual = safeGetValue('opnameInputLokasiActual', activeOpnameAsset.lokasi).trim();
             
-            // Baca metode dari elemen input modal verifikasi baru dengan fallback aman
             const metodeInputEl = document.getElementById('opnameModalInputMetodeFinal');
             let metode = (metodeInputEl && metodeInputEl.value.trim()) ? metodeInputEl.value.trim() : (activeOpnameMethod || 'Scan');
             metode = metode.toLowerCase().includes('manual') ? 'Manual' : 'Scan';
@@ -2448,9 +2424,9 @@
                 tanggalScan: dateStr,
                 assetId: currentAssetId,
                 subNumber: currentSubNumber,
-                cabang: activeOpnameAsset.cabang || activeOpnameAsset["Business Area"] || "",
-                deskripsi: activeOpnameAsset.deskripsi || activeOpnameAsset["Asset Description"] || "",
-                lokasiSap: activeOpnameAsset.lokasi || activeOpnameAsset["Location"] || "",
+                cabang: activeOpnameAsset.cabang || "",
+                deskripsi: activeOpnameAsset.deskripsi || "",
+                lokasiSap: activeOpnameAsset.lokasi || "",
                 lokasiOpname: lokasiActual,
                 waktuScan: timeStr,
                 statusAset: statusAset,
@@ -2460,11 +2436,14 @@
                 keterangan: keterangan || "-"
             };
         
-            // Kirim ke server lewat Proxy Vercel
+            // Bersih tanpa token — token otomatis ditempel oleh api/proxy.js di backend Vercel
             fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: "addLog", data: newHistoryLog })
+                body: JSON.stringify({ 
+                    action: "addLog", 
+                    data: newHistoryLog 
+                })
             })
             .then(res => res.json())
             .then(res => {
@@ -2481,9 +2460,8 @@
                 renderKPIs();
                 renderHistoryTable();
                 renderRecapView();
-                
                 if (typeof loadLogsFromServer === 'function') {
-                    loadLogsFromServer();
+                    loadLogsFromServer(true);
                 }
             })
             .catch(err => {
@@ -2491,13 +2469,12 @@
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Simpan Log Opname`;
                 }
-        
                 closeOpnameModal();
                 historyLogs.unshift(newHistoryLog);
                 renderKPIs();
                 renderHistoryTable();
                 renderRecapView();
-                showToast('Berhasil Disimpan!', `Data opname aset ${currentAssetId} berhasil dicatat.`, 'success');
+                showToast('Tersimpan Lokal', `Data dicatat di perangkat.`, 'info');
             });
         }
         
