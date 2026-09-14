@@ -1544,18 +1544,18 @@
         
             } else if (activeDashboardFilterType === 'CONDITION') {
                 targetData = scopedLogs.filter(item => {
-                    // Membaca kolom yang tepat sesuai tombol switch aktif ('aset' atau 'label')
                     const targetVal = activeStatusType === 'aset' ? (item.statusAset || "") : (item.statusLabel || "");
                     const itemVal = String(targetVal).trim().toLowerCase();
                     const filterVal = String(activeConditionFilter).trim().toLowerCase();
         
                     let matchCondition = false;
-                    if (filterVal.includes('baik')) {
+                    // PERBAIKAN: Cek secara spesifik agar "Rusak Berat" tidak tertangkap oleh "Rusak Ringan"
+                    if (filterVal === 'rusak berat' || filterVal.includes('berat')) {
+                        matchCondition = itemVal === 'rusak berat' || itemVal.includes('berat');
+                    } else if (filterVal === 'rusak ringan' || filterVal.includes('ringan')) {
+                        matchCondition = itemVal === 'rusak ringan' || (itemVal.includes('ringan') && !itemVal.includes('berat'));
+                    } else if (filterVal.includes('baik')) {
                         matchCondition = itemVal.includes('baik');
-                    } else if (filterVal.includes('ringan') || filterVal.includes('rusak')) {
-                        matchCondition = itemVal.includes('ringan') || itemVal.includes('rusak');
-                    } else if (filterVal.includes('berat')) {
-                        matchCondition = itemVal.includes('berat');
                     } else if (filterVal.includes('hilang') || filterVal.includes('tidak')) {
                         matchCondition = itemVal.includes('hilang') || itemVal.includes('tidak');
                     } else {
@@ -2576,16 +2576,16 @@
             let countLost = 0;
         
             scopedLogs.forEach(h => {
-                // Membaca status berdasarkan pilihan switch aktif di dashboard (statusAset atau statusLabel)
                 const targetVal = activeStatusType === 'aset' ? (h.statusAset || "") : (h.statusLabel || "");
                 const st = String(targetVal).trim().toLowerCase();
         
+                // Urutan pengecekan wajib dari yang spesifik ke umum
                 if (st.includes('baik')) {
                     countGood++;
-                } else if (st.includes('ringan') || st.includes('rusak')) {
-                    countLight++;
                 } else if (st.includes('berat')) {
-                    countHeavy++;
+                    countHeavy++; // Rusak Berat dicek duluan
+                } else if (st.includes('ringan') || (st.includes('rusak') && !st.includes('berat'))) {
+                    countLight++; // Rusak Ringan
                 } else if (st.includes('hilang') || st.includes('tidak')) {
                     countLost++;
                 }
@@ -3965,7 +3965,7 @@
                 : historyLogs.filter(h => h.cabang.startsWith(selectedBranch) || selectedBranch.startsWith(h.cabang));
         
             const totalAsset = scopedAssets.length;
-            
+        
             // Hitung unik aset yang sudah terscan
             const scannedAssetIds = new Set(scopedLogs.map(h => String(h.assetId).trim().toLowerCase()));
             const totalScanned = scopedAssets.filter(a => scannedAssetIds.has(String(a.id).trim().toLowerCase())).length;
@@ -3984,22 +3984,29 @@
             // Update Welcome Banner Badge Ring
             safeSetText('dashOverallRing', `${scannedPct}%`);
             safeSetText('dashOverallText', `${totalScanned} dari ${totalAsset} Aset Selesai`);
-            
+        
             const descLabel = selectedBranch === 'ALL' ? 'Semua Cabang Terdaftar' : `Business Area: ${selectedBranch}`;
             safeSetText('labelFilterDesc', descLabel);
         
-            // --- HITUNG KONDISI FISIK DARI LOG ---
+            // --- HITUNG KONDISI FISIK DARI LOG (DIURUTKAN DARI YANG SPESIFIK) ---
             let countGood = 0;
             let countLight = 0;
             let countHeavy = 0;
             let countLost = 0;
         
             scopedLogs.forEach(h => {
-                const st = String(h.statusAset || "").toLowerCase();
-                if (st.includes('baik')) countGood++;
-                else if (st.includes('ringan')) countLight++;
-                else if (st.includes('berat')) countHeavy++;
-                else if (st.includes('hilang')) countLost++;
+                const targetVal = activeStatusType === 'aset' ? (h.statusAset || "") : (h.statusLabel || "");
+                const st = String(targetVal).trim().toLowerCase();
+        
+                if (st.includes('baik')) {
+                    countGood++;
+                } else if (st.includes('berat')) {
+                    countHeavy++; // Cek 'berat' terlebih dahulu agar tidak tertukar
+                } else if (st.includes('ringan') || (st.includes('rusak') && !st.includes('berat'))) {
+                    countLight++;
+                } else if (st.includes('hilang') || st.includes('tidak')) {
+                    countLost++;
+                }
             });
         
             safeSetText('insightGood', countGood);
