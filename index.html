@@ -1298,9 +1298,10 @@
                         <p class="font-bold text-slate-800 text-xs group-hover:text-astra-700">Ambil Foto Barcode (Kamera HP)</p>
                         <p class="text-[10px] text-slate-500">Foto stiker barcode secara langsung menggunakan kamera HP.</p>
                     </div>
-                    <input type="file" accept="image/*" capture="environment" onchange="handleNativeCameraScan(event)" class="hidden">
+                    <!-- Ubah ke handler khusus yang membawa argumen 'Scan' -->
+                    <input type="file" accept="image/*" capture="environment" onchange="handleNativeCameraScanWithMethod(event, 'Scan')" class="hidden">
                 </label>
-
+                
                 <!-- Opsi 3 (BARU): Input Manual By Kode Aset (Bagi aset yang tidak ada barcodenya) -->
                 <button onclick="openManualInputPrompt()" class="w-full flex items-center p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition text-left group">
                     <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition">
@@ -1361,6 +1362,55 @@
                 activeDashboardFilterType = statusType; 
                 switchView('scannedAssetView');
             }
+        }
+
+        // Handler khusus untuk foto barcode kamera HP dengan metode 'Scan'
+        function handleNativeCameraScanWithMethod(event, methodType) {
+            const file = event.target.files[0];
+            if (!file) return;
+        
+            showToast('Memindai Foto', 'Mendeteksi barcode dari foto kamera HP...', 'info');
+        
+            const html5QrCode = new Html5Qrcode("cameraReader");
+            
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    html5QrCode.clear();
+                    let rawText = decodedText.trim();
+                    if (rawText.length < 8) {
+                        showToast('Tidak Valid', 'Barcode terlalu pendek atau tidak terbaca.', 'warning');
+                        return;
+                    }
+        
+                    playBeepSound('success');
+                    let cleanedText = rawText.replace(/[-_]/g, " ");
+                    let parts = cleanedText.split(/\s+/);
+                    let scannedId = parts[0].trim().toLowerCase();
+                    let scannedSub = (parts[1] || "0").trim().toLowerCase();
+        
+                    let foundAsset = assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        let dbSub = String(a.subNumber !== undefined ? a.subNumber : (a["Sub-Number"] !== undefined ? a["Sub-Number"] : "0")).trim().toLowerCase();
+                        return dbId === scannedId && dbSub === scannedSub;
+                    }) || assets.find(a => {
+                        let dbId = String(a.id || a["ID Asset"] || "").trim().toLowerCase();
+                        return dbId === scannedId;
+                    });
+        
+                    if (!foundAsset) {
+                        playBeepSound('error');
+                        showToast('Tidak Terdaftar', `Nomor Aset "${rawText}" tidak ada di Master Data.`, 'warning');
+                        return;
+                    }
+        
+                    // Buka modal opname dengan membawa metode 'Scan' secara tegas
+                    openOpnameModal(foundAsset, methodType);
+                })
+                .catch(err => {
+                    html5QrCode.clear();
+                    playBeepSound('error');
+                    showToast('Barcode Tidak Terbaca', 'Pastikan foto stiker barcode jelas dan fokus.', 'warning');
+                });
         }
         
         // --- FUNGSI Klik KARTU KONDISI (MEMBAWA STATUS PERSPEKTIF AKTIF) ---
@@ -4035,9 +4085,7 @@
             closeManualInputModal();
             playBeepSound('success');
             
-            // Set penanda bahwa ini berasal dari input manual
-            window.isLastOpnameManual = true;
-            
+            // Kirim secara eksplisit 'Manual' sebagai metode opname
             openOpnameModal(foundAsset, 'Manual');
         }
 
