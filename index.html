@@ -1597,9 +1597,9 @@
                             <td class="py-2.5 px-3 font-mono text-slate-500 text-[11px]">${item.capitalizedOn || '-'}</td>
                             <td class="py-2.5 px-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono text-[11px]">${item.lokasi}</span></td>
                             <td class="py-2.5 px-3 text-center">
-                                <button onclick="fillBarcodeInput('${item.id}'); triggerOpnameLookup('Manual');" class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-3 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
+                                <button onclick='openOpnameModal({"id": "${item.id}", "subNumber": "${item.subNumber || '0'}", "cabang": "${item.cabang}", "deskripsi": "${item.deskripsi.replace(/'/g, "\\'")}", "lokasi": "${item.lokasi}"}, "Manual")' class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-2.5 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
                                     <i class="fa-solid fa-clipboard-check"></i>
-                                    <span>Opname Sekarang</span>
+                                    <span>Opname</span>
                                 </button>
                             </td>
                         `;
@@ -2169,11 +2169,14 @@
         function openOpnameModal(assetObj, method) {
             activeOpnameAsset = assetObj;
             
-            // PENGAMAN 1: Jika method tidak dikirim lewat parameter, cek apakah input manual sedang aktif atau ada state manual
+            // Jika parameter method tidak dikirim, tentukan secara cerdas berdasarkan tombol atau input
             let detectedMethod = method;
             if (!detectedMethod) {
-                // Cek secara cerdas: jika modal input manual atau tombol tertentu yang memicu, fallback ke 'Manual' atau 'Scan'
-                detectedMethod = window.isLastOpnameManual ? 'Manual' : 'Scan';
+                if (window.isLastOpnameManual) {
+                    detectedMethod = 'Manual';
+                } else {
+                    detectedMethod = 'Scan'; // Default aman jadi Scan jika dibuka dari tombol tabel/kamera
+                }
             }
             
             activeOpnameMethod = String(detectedMethod).trim();
@@ -2187,16 +2190,16 @@
             const lokasiInput = document.getElementById('opnameInputLokasiActual');
             if (lokasiInput) lokasiInput.value = assetObj.lokasi;
         
-            // Evaluasi teks akhir dengan aman
+            // Paksa pastikan teks yang masuk adalah 'Manual' atau 'Scan'
             const isManual = activeOpnameMethod.toLowerCase().includes('manual');
             const finalMethodText = isManual ? 'Manual' : 'Scan';
         
+            // Masukkan nilainya ke input di dalam modal verifikasi
             const metodeInput = document.getElementById('opnameModalInputMetodeValidasi');
             if (metodeInput) {
                 metodeInput.value = finalMethodText; 
             }
         
-            // Reset state sementara
             window.isLastOpnameManual = false;
         
             clearEvidencePhoto();
@@ -2204,7 +2207,6 @@
         
             const modal = document.getElementById('opnameModal');
             if (modal) {
-                modal.classList.add('hidden');
                 modal.classList.remove('hidden');
             }
         }
@@ -2720,7 +2722,7 @@
                         <td class="py-3 px-3 sm:px-4 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 <!-- Tombol Opname Asli -->
-                                <button onclick="fillBarcodeInput('${item.id}'); triggerOpnameLookup('Manual');" class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-2.5 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
+                                <button onclick='openOpnameModal({"id": "${item.id}", "subNumber": "${item.subNumber || '0'}", "cabang": "${item.cabang}", "deskripsi": "${item.deskripsi.replace(/'/g, "\\'")}", "lokasi": "${item.lokasi}"}, "Manual")' class="bg-daihatsu-50 hover:bg-daihatsu-100 text-daihatsu-700 border border-daihatsu-200 px-2.5 py-1 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs">
                                     <i class="fa-solid fa-clipboard-check"></i>
                                     <span>Opname</span>
                                 </button>
