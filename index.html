@@ -1650,7 +1650,9 @@
                             <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">${item.assetId} ${item.subNumber || '0'}</td>
                             <td class="py-2.5 px-3 font-semibold text-slate-700">${item.cabang}</td>
                             <td class="py-2.5 px-3 font-semibold text-slate-800">${item.deskripsi}</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-600">${item.lokasiSap || '-'}</td>
                             <td class="py-2.5 px-3 font-mono font-bold text-slate-800">${item.lokasiOpname || '-'}</td>
+                            <td class="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">${formatDisplayTime(item.waktuScan)}</td>
                             <td class="py-2.5 px-3 whitespace-nowrap">${asetBadge}</td>
                             <td class="py-2.5 px-3 whitespace-nowrap">${labelBadge}</td>
                             <td class="py-2.5 px-3 text-center whitespace-nowrap">${fotoHtml}</td>
