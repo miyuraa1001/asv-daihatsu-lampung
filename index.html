@@ -1547,13 +1547,18 @@
                     const targetVal = activeStatusType === 'aset' ? (item.statusAset || "") : (item.statusLabel || "");
                     const itemVal = String(targetVal).trim().toLowerCase();
                     const filterVal = String(activeConditionFilter).trim().toLowerCase();
-        
+            
                     let matchCondition = false;
-                    // PERBAIKAN: Cek secara spesifik agar "Rusak Berat" tidak tertangkap oleh "Rusak Ringan"
-                    if (filterVal === 'rusak berat' || filterVal.includes('berat')) {
-                        matchCondition = itemVal === 'rusak berat' || itemVal.includes('berat');
-                    } else if (filterVal === 'rusak ringan' || filterVal.includes('ringan')) {
-                        matchCondition = itemVal === 'rusak ringan' || (itemVal.includes('ringan') && !itemVal.includes('berat'));
+                    
+                    if (filterVal.includes('berat')) {
+                        matchCondition = itemVal.includes('berat');
+                    } else if (filterVal.includes('ringan') || filterVal.includes('rusak')) {
+                        // Mengakomodasi 'statusAset' (Rusak Ringan) maupun 'statusLabel' (Rusak / Sobek)
+                        if (activeStatusType === 'label') {
+                            matchCondition = itemVal.includes('rusak') || itemVal.includes('sobek') || itemVal.includes('tidak');
+                        } else {
+                            matchCondition = itemVal.includes('ringan') || (itemVal.includes('rusak') && !itemVal.includes('berat'));
+                        }
                     } else if (filterVal.includes('baik')) {
                         matchCondition = itemVal.includes('baik');
                     } else if (filterVal.includes('hilang') || filterVal.includes('tidak')) {
@@ -1561,7 +1566,7 @@
                     } else {
                         matchCondition = itemVal === filterVal || itemVal.includes(filterVal);
                     }
-        
+            
                     const searchTarget = `${item.assetId} ${item.subNumber} ${item.deskripsi} ${item.lokasiSap} ${item.keterangan || ''}`.toLowerCase();
                     return matchCondition && searchTarget.includes(searchVal);
                 });
