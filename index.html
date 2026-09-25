@@ -188,16 +188,16 @@
 
         <div class="p-4 border-t border-slate-800 bg-slate-950/50 flex items-center justify-between">
             <div class="flex items-center space-x-3 min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-astra-600 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
-                    MK
+                <div id="sidebarUserAvatar" class="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs">
+                    --
                 </div>
                 <div class="text-xs truncate min-w-0">
-                    <p class="font-bold text-slate-100 truncate" id="sidebarAuditorName">Muhammad Khairul Fikri</p>
-                    <p class="text-slate-400 text-[10px] truncate mt-0.5">Petugas Internal Audit</p>
-                    <!-- Tombol Logout tepat di bawah nama user -->
-                    <button onclick="handleLogout()" class="mt-1.5 text-rose-400 hover:text-rose-300 font-semibold text-[11px] flex items-center gap-1 transition">
-                        <i class="fa-solid fa-right-from-bracket text-[10px]"></i>
-                        <span>Keluar / Logout</span>
+                    <p class="font-bold text-slate-100 truncate" id="sidebarAuditorName">Belum Login</p>
+                    <p class="text-slate-400 text-[10px] truncate mt-0.5" id="sidebarAuditorRole">Silakan Masuk</p>
+                    <!-- Tombol Auth dinamis (Login / Logout) -->
+                    <button id="sidebarAuthBtn" onclick="handleAuthAction()" class="mt-1.5 text-emerald-400 hover:text-emerald-300 font-semibold text-[11px] flex items-center gap-1 transition">
+                        <i class="fa-solid fa-right-to-bracket text-[10px]"></i>
+                        <span id="sidebarAuthBtnText">Masuk / Login</span>
                     </button>
                 </div>
             </div>
@@ -751,26 +751,26 @@
                             <i class="fa-solid fa-user-shield text-astra-600"></i>
                             <span>Sesi Petugas Aktif</span>
                         </h3>
-                        <span class="inline-flex items-center gap-1.5 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Aktif
+                        <span id="sessionStatusBadge" class="inline-flex items-center gap-1.5 text-[11px] bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-full font-semibold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Belum Login
                         </span>
                     </div>
 
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/70">
                         <div class="flex items-center space-x-3.5 min-w-0">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-astra-600 to-daihatsu-700 text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
-                                <i class="fa-solid fa-user-tie"></i>
+                            <div id="settingsProfileAvatar" class="w-12 h-12 rounded-2xl bg-slate-700 text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
+                                <i class="fa-solid fa-user-slash"></i>
                             </div>
                             <div class="min-w-0">
-                                <h4 id="profileNameDisplay" class="font-black text-slate-900 text-sm sm:text-base truncate">Muhammad Khairul Fikri</h4>
-                                <p class="text-xs text-slate-500 truncate mt-0.5">Petugas Internal Audit / Control</p>
-                                <span class="inline-block mt-1 text-[10px] bg-astra-50 text-astra-700 border border-astra-200 px-2 py-0.5 rounded font-mono font-medium">Cabang: D660 (Lampung A. Yani)</span>
+                                <h4 id="profileNameDisplay" class="font-black text-slate-900 text-sm sm:text-base truncate">Belum Login</h4>
+                                <p id="profileRoleDisplay" class="text-xs text-slate-500 truncate mt-0.5">Akses Belum Terautentikasi</p>
+                                <span id="profileBranchDisplay" class="inline-block mt-1 text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-mono font-medium">Sesi Tidak Aktif</span>
                             </div>
                         </div>
 
-                        <button onclick="handleLogout()" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs shrink-0">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                            <span>Keluar / Logout</span>
+                        <button id="settingsAuthBtn" onclick="handleAuthAction()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs shrink-0">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span id="settingsAuthBtnText">Masuk / Login</span>
                         </button>
                     </div>
                 </div>
@@ -915,19 +915,20 @@
     </div>
     
     <!-- MODAL LOGIN AUDITOR / PETUGAS -->
-    <div id="loginModal" class="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeLoginModal()">
+    <div id="loginModal" class="fixed inset-0 z-[1000] bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all" onclick="event.stopPropagation()">
             
             <!-- Header Modal Login -->
             <div class="bg-gradient-to-r from-slate-900 via-astra-800 to-daihatsu-900 text-white p-6 text-center relative">
-                <button onclick="closeLoginModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-lg transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-daihatsu-600 to-astra-700 flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg shadow-daihatsu-600/30 border border-white/20">
                     ASV
                 </div>
                 <h3 class="font-black text-lg tracking-tight">Masuk Akses Petugas</h3>
                 <p class="text-xs text-slate-300 mt-1">Asset Scan & Verification System</p>
+                <div class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-slate-200 text-[10px] font-semibold border border-white/15">
+                    <i class="fa-solid fa-lock text-amber-400 text-[10px]"></i>
+                    <span>Otentikasi Wajib Masuk</span>
+                </div>
             </div>
     
             <!-- Form Login yang Rapi dan Terkunci di Dalam Kotak -->
@@ -2217,6 +2218,13 @@
 
         // --- OPNAME MODAL ACTIONS ---
         function openOpnameModal(assetObj, method) {
+            const activeUser = localStorage.getItem('asv_active_user');
+            if (!activeUser) {
+                showToast('Login Diperlukan', 'Silakan masuk/login terlebih dahulu untuk melakukan verifikasi aset.', 'warning');
+                openLoginModal();
+                return;
+            }
+
             activeOpnameAsset = assetObj;
             
             let detectedMethod = method || (window.isLastOpnameManual ? 'Manual' : 'Scan');
@@ -2897,9 +2905,23 @@
             if (savedUser && usernameInput) usernameInput.value = savedUser;
             if (savedPass && passwordInput) passwordInput.value = savedPass;
             if ((savedUser || savedPass) && rememberCheckbox) rememberCheckbox.checked = true;
+
+            setTimeout(() => {
+                if (usernameInput && !usernameInput.value) {
+                    usernameInput.focus();
+                } else if (passwordInput && !passwordInput.value) {
+                    passwordInput.focus();
+                }
+            }, 100);
         }
         
-        function closeLoginModal() {
+        function closeLoginModal(force = false) {
+            const activeUser = localStorage.getItem('asv_active_user');
+            // Jika belum login dan bukan dipanggil setelah autentikasi sukses (force), modal tidak boleh ditutup
+            if (!activeUser && !force) {
+                showToast('Login Diperlukan', 'Harap masukkan NPK dan Kata Sandi untuk mengakses sistem.', 'warning');
+                return;
+            }
             const modal = document.getElementById('loginModal');
             if (modal) modal.classList.add('hidden');
         }
@@ -2972,7 +2994,7 @@
                     localStorage.setItem('asv_active_user', JSON.stringify(currentUser));
                     updateActiveUserUI(currentUser);
         
-                    closeLoginModal();
+                    closeLoginModal(true);
                     if (typeof playBeepSound === 'function') playBeepSound('success');
                     showToast('Berhasil Masuk', `Selamat datang, ${response.user.nama}!`, 'success');
         
@@ -2991,23 +3013,95 @@
         }
         
         function updateActiveUserUI(userData) {
-        if (!userData) return;
-    
-        // Update Nama di Sidebar
-        safeSetText('sidebarAuditorName', userData.name);
-    
-        // Update Inisial Huruf di Avatar Sidebar
-        const initials = userData.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-        const avatarEl = document.querySelector('aside .rounded-xl.bg-astra-600, aside .rounded-full.bg-astra-600');
-        if (avatarEl) {
-            avatarEl.innerText = initials;
+            const sidebarNameEl = document.getElementById('sidebarAuditorName');
+            const sidebarRoleEl = document.getElementById('sidebarAuditorRole');
+            const sidebarAuthBtn = document.getElementById('sidebarAuthBtn');
+            const sidebarAvatar = document.getElementById('sidebarUserAvatar');
+            const profileNameEl = document.getElementById('profileNameDisplay');
+            const profileRoleEl = document.getElementById('profileRoleDisplay');
+            const profileBranchEl = document.getElementById('profileBranchDisplay');
+            const sessionStatusBadge = document.getElementById('sessionStatusBadge');
+            const settingsAuthBtn = document.getElementById('settingsAuthBtn');
+            const settingsProfileAvatar = document.getElementById('settingsProfileAvatar');
+
+            if (!userData || !userData.name) {
+                // Tampilan saat Belum Login
+                if (sidebarNameEl) sidebarNameEl.textContent = 'Belum Login';
+                if (sidebarRoleEl) sidebarRoleEl.textContent = 'Silakan Masuk';
+                if (sidebarAvatar) {
+                    sidebarAvatar.textContent = '--';
+                    sidebarAvatar.className = 'w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs';
+                }
+                if (sidebarAuthBtn) {
+                    sidebarAuthBtn.className = 'mt-1.5 text-emerald-400 hover:text-emerald-300 font-semibold text-[11px] flex items-center gap-1 transition';
+                    sidebarAuthBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket text-[10px]"></i> <span>Masuk / Login</span>';
+                }
+
+                if (profileNameEl) profileNameEl.textContent = 'Belum Login';
+                if (profileRoleEl) profileRoleEl.textContent = 'Akses Belum Terautentikasi';
+                if (profileBranchEl) {
+                    profileBranchEl.textContent = 'Sesi Tidak Aktif';
+                    profileBranchEl.className = 'inline-block mt-1 text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-mono font-medium';
+                }
+                if (sessionStatusBadge) {
+                    sessionStatusBadge.className = 'inline-flex items-center gap-1.5 text-[11px] bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-full font-semibold';
+                    sessionStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Belum Login';
+                }
+                if (settingsAuthBtn) {
+                    settingsAuthBtn.className = 'px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs shrink-0';
+                    settingsAuthBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> <span>Masuk / Login</span>';
+                }
+                if (settingsProfileAvatar) {
+                    settingsProfileAvatar.className = 'w-12 h-12 rounded-2xl bg-slate-700 text-white flex items-center justify-center font-black text-lg shadow-md shrink-0';
+                    settingsProfileAvatar.innerHTML = '<i class="fa-solid fa-user-slash"></i>';
+                }
+                return;
+            }
+
+            // Tampilan saat Berhasil Login
+            if (sidebarNameEl) sidebarNameEl.textContent = userData.name;
+            if (sidebarRoleEl) sidebarRoleEl.textContent = userData.npk ? `NPK: ${userData.npk}` : 'Petugas Internal Audit';
+
+            const initials = userData.name.split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'AD';
+            if (sidebarAvatar) {
+                sidebarAvatar.textContent = initials;
+                sidebarAvatar.className = 'w-9 h-9 rounded-xl bg-astra-600 flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-xs';
+            }
+            if (sidebarAuthBtn) {
+                sidebarAuthBtn.className = 'mt-1.5 text-rose-400 hover:text-rose-300 font-semibold text-[11px] flex items-center gap-1 transition';
+                sidebarAuthBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket text-[10px]"></i> <span>Keluar / Logout</span>';
+            }
+
+            if (profileNameEl) profileNameEl.textContent = userData.name;
+            if (profileRoleEl) profileRoleEl.textContent = userData.npk ? `Petugas Internal Audit (NPK: ${userData.npk})` : 'Petugas Internal Audit / Control';
+            if (profileBranchEl) {
+                profileBranchEl.textContent = 'Akses Terverifikasi';
+                profileBranchEl.className = 'inline-block mt-1 text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-mono font-medium';
+            }
+            if (sessionStatusBadge) {
+                sessionStatusBadge.className = 'inline-flex items-center gap-1.5 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold';
+                sessionStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sesi Aktif';
+            }
+            if (settingsAuthBtn) {
+                settingsAuthBtn.className = 'px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs shrink-0';
+                settingsAuthBtn.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> <span>Keluar / Logout</span>';
+            }
+            if (settingsProfileAvatar) {
+                settingsProfileAvatar.className = 'w-12 h-12 rounded-2xl bg-gradient-to-br from-astra-600 to-daihatsu-700 text-white flex items-center justify-center font-black text-lg shadow-md shrink-0';
+                settingsProfileAvatar.innerHTML = '<i class="fa-solid fa-user-tie"></i>';
+            }
+        }
+        
+        function handleAuthAction() {
+            const savedUser = localStorage.getItem('asv_active_user');
+            if (savedUser) {
+                handleLogout();
+            } else {
+                openLoginModal();
+            }
         }
 
-    // Update Nama di Pengaturan System View
-    safeSetText('profileNameDisplay', userData.name);
-}
-        
-        // Override Fungsi Logout
+        // Fungsi Logout
         function handleLogout() {
             if (typeof askConfirm === 'function') {
                 askConfirm(
@@ -3016,25 +3110,14 @@
                     function () {
                         // Hapus sesi user aktif dari browser
                         localStorage.removeItem('asv_active_user');
-                        
-                        // Kembalikan teks tampilan sidebar & pengaturan ke default
-                        safeSetText('sidebarAuditorName', 'Petugas Audit');
-                        safeSetText('profileNameDisplay', 'Belum Login');
-                        
-                        // Reset inisial avatar sidebar kembali ke default (misal: "AD")
-                        const avatarEl = document.querySelector('aside .rounded-xl.bg-astra-600, aside .rounded-full.bg-astra-600');
-                        if (avatarEl) avatarEl.innerText = "AD";
-        
+                        updateActiveUserUI(null);
                         showToast('Sesi Berakhir', 'Anda telah keluar. Silakan login kembali.', 'info');
-                        
-                        // Buka kembali modal login agar petugas lain bisa masuk
                         openLoginModal();
                     }
                 );
             } else if (confirm('Apakah Anda yakin ingin keluar?')) {
                 localStorage.removeItem('asv_active_user');
-                safeSetText('sidebarAuditorName', 'Petugas Audit');
-                safeSetText('profileNameDisplay', 'Belum Login');
+                updateActiveUserUI(null);
                 openLoginModal();
             }
         }
@@ -4158,10 +4241,30 @@
             // Cek Sesi Petugas yang Tersimpan
             const savedUser = localStorage.getItem('asv_active_user');
             if (savedUser) {
-                updateActiveUserUI(JSON.parse(savedUser));
+                try {
+                    updateActiveUserUI(JSON.parse(savedUser));
+                    closeLoginModal(true);
+                } catch (e) {
+                    localStorage.removeItem('asv_active_user');
+                    updateActiveUserUI(null);
+                    openLoginModal();
+                }
             } else {
+                updateActiveUserUI(null);
                 openLoginModal(); // Buka modal login otomatis jika belum ada sesi
             }
+
+            // Cegah tombol Escape menutup modal login jika belum autentikasi
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    const activeUser = localStorage.getItem('asv_active_user');
+                    const loginModal = document.getElementById('loginModal');
+                    if (loginModal && !loginModal.classList.contains('hidden') && !activeUser) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            });
 
             fetchDataFromBackend();
             
